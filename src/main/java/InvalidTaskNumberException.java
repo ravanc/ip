@@ -1,0 +1,16 @@
+/**
+ * Thrown when {@code mark} or {@code unmark} is given something that is not a whole number,
+ * e.g. {@code mark two} or {@code mark} on its own.
+ */
+public class InvalidTaskNumberException extends ShannonException {
+
+    /**
+     * @param command  the command word, so the example matches what the user typed
+     * @param argument the text that could not be read as a task number
+     */
+    public InvalidTaskNumberException(String command, String argument) {
+        super(argument.isEmpty()
+                ? "Which task? Give me a task number, for example: " + command + " 2"
+                : "\"" + argument + "\" is not a task number. Try: " + command + " 2");
+    }
+}

@@ -13,14 +13,15 @@ public class Shannon {
     }
 
     /**
-     * Stores an already-built task, or reports that the list is full.
+     * Stores an already-built task.
      * Every {@code todo}/{@code deadline}/{@code event} command funnels through here so the
      * confirmation message and the full-list check live in exactly one place.
+     *
+     * @throws TaskListFullException if the list already holds {@value #MAX_TASKS} tasks
      */
-    private static void addTask(Task task) {
+    private static void addTask(Task task) throws TaskListFullException {
         if (taskCount == MAX_TASKS) {
-            System.out.println("Sorry, my list is full! I can only remember " + MAX_TASKS + " tasks.");
-            return;
+            throw new TaskListFullException(MAX_TASKS);
         }
         tasks[taskCount] = task;
         taskCount++;
@@ -33,12 +34,13 @@ public class Shannon {
      * Handles {@code todo <description>}.
      *
      * @param argument text after the command word
+     * @throws EmptyDescriptionException if no description was given
+     * @throws TaskListFullException     if the list is full
      */
-    private static void addTodo(String argument) {
+    private static void addTodo(String argument) throws ShannonException {
         String description = argument.trim();
         if (description.isEmpty()) {
-            System.out.println("A todo needs a description, for example: todo visit new theme park");
-            return;
+            throw new EmptyDescriptionException("todo", "todo visit new theme park");
         }
         addTask(new Todo(description));
     }
@@ -47,12 +49,20 @@ public class Shannon {
      * Handles {@code deadline <description> /by <when>}.
      *
      * @param argument text after the command word
+     * @throws MissingDeadlineByException if the {@code /by} part is missing or blank
+     * @throws EmptyDescriptionException  if no description was given before the {@code /by}
+     * @throws TaskListFullException      if the list is full
      */
-    private static void addDeadline(String argument) {
-        String[] parts = argument.split(" /by ", 2);
-        if (parts.length < 2 || parts[0].trim().isEmpty() || parts[1].trim().isEmpty()) {
-            System.out.println("A deadline needs a /by, for example: deadline submit report /by 11/10/2019 5pm");
-            return;
+    private static void addDeadline(String argument) throws ShannonException {
+        // Split on the marker itself rather than " /by ", so that "deadline /by Friday"
+        // is reported as a missing description rather than a missing /by.
+        String[] parts = argument.split("/by", 2);
+        // The two checks are separate so the user is told exactly which half is missing.
+        if (parts.length < 2 || parts[1].trim().isEmpty()) {
+            throw new MissingDeadlineByException();
+        }
+        if (parts[0].trim().isEmpty()) {
+            throw new EmptyDescriptionException("deadline", "deadline submit report /by 11/10/2019 5pm");
         }
         addTask(new Deadline(parts[0].trim(), parts[1].trim()));
     }
@@ -61,15 +71,20 @@ public class Shannon {
      * Handles {@code event <description> /from <start> /to <end>}.
      *
      * @param argument text after the command word
+     * @throws MissingEventTimeException if the {@code /from} or {@code /to} part is missing or blank
+     * @throws EmptyDescriptionException if no description was given before the {@code /from}
+     * @throws TaskListFullException     if the list is full
      */
-    private static void addEvent(String argument) {
-        String[] parts = argument.split(" /from ", 2);
-        String[] times = parts.length < 2 ? new String[0] : parts[1].split(" /to ", 2);
-        if (times.length < 2 || parts[0].trim().isEmpty()
-                || times[0].trim().isEmpty() || times[1].trim().isEmpty()) {
-            System.out.println("An event needs a /from and a /to, for example: "
-                    + "event team meeting /from 2/10/2019 2pm /to 4pm");
-            return;
+    private static void addEvent(String argument) throws ShannonException {
+        // Split on the markers themselves (see addDeadline) so a missing description is
+        // reported as such instead of looking like a missing /from.
+        String[] parts = argument.split("/from", 2);
+        String[] times = parts.length < 2 ? new String[0] : parts[1].split("/to", 2);
+        if (times.length < 2 || times[0].trim().isEmpty() || times[1].trim().isEmpty()) {
+            throw new MissingEventTimeException();
+        }
+        if (parts[0].trim().isEmpty()) {
+            throw new EmptyDescriptionException("event", "event team meeting /from 2/10/2019 2pm /to 4pm");
         }
         addTask(new Event(parts[0].trim(), times[0].trim(), times[1].trim()));
     }
@@ -90,18 +105,21 @@ public class Shannon {
      *
      * @param argument text after the command word, expected to be a task number counted from 1
      * @param isDone   {@code true} for {@code mark}, {@code false} for {@code unmark}
+     * @throws InvalidTaskNumberException if the argument is not a whole number
+     * @throws TaskNotFoundException      if the number does not match any task in the list
      */
-    private static void markTask(String argument, boolean isDone) {
+    private static void markTask(String argument, boolean isDone) throws ShannonException {
+        String command = isDone ? "mark" : "unmark";
         int taskNumber;
         try {
             taskNumber = Integer.parseInt(argument.trim());
         } catch (NumberFormatException e) {
-            System.out.println("Please give me a task number, for example: mark 2");
-            return;
+            // Translate Java's low-level parsing error into one of our own, so the command
+            // loop only ever has to know about ShannonException.
+            throw new InvalidTaskNumberException(command, argument.trim());
         }
         if (taskNumber < 1 || taskNumber > taskCount) {
-            System.out.println("I don't have a task numbered " + taskNumber + "!");
-            return;
+            throw new TaskNotFoundException(taskNumber, taskCount);
         }
         Task task = tasks[taskNumber - 1]; // account for one-indexing
         if (isDone) {
@@ -132,36 +150,43 @@ public class Shannon {
         System.out.println("What can I do for you?");
         printHorizontalLine();
 
-        String exitString = "bye";
-        String listCommand = "list";
-        String markPrefix = "mark ";
-        String unmarkPrefix = "unmark ";
-        String todoPrefix = "todo ";
-        String deadlinePrefix = "deadline ";
-        String eventPrefix = "event ";
         String input = scanner.nextLine();
 
-        while (!exitString.equals(input)) {
+        // Split into the command word and everything after it, so that a command typed on its
+        // own (e.g. "todo") is still recognised and can report the right error.
+        String[] words = input.trim().split("\\s+", 2);
+        String command = words[0];
+        String argument = words.length > 1 ? words[1] : "";
+
+        while (!"bye".equals(command)) {
             printHorizontalLine();
-            if (listCommand.equals(input)) {
-                printTasks();
-            } else if (input.startsWith(markPrefix)) {
-                markTask(input.substring(markPrefix.length()), true);
-            } else if (input.startsWith(unmarkPrefix)) {
-                markTask(input.substring(unmarkPrefix.length()), false);
-            } else if (input.startsWith(todoPrefix)) {
-                addTodo(input.substring(todoPrefix.length()));
-            } else if (input.startsWith(deadlinePrefix)) {
-                addDeadline(input.substring(deadlinePrefix.length()));
-            } else if (input.startsWith(eventPrefix)) {
-                addEvent(input.substring(eventPrefix.length()));
-            } else {
-                // Now that tasks have types, a bare line is no longer enough to build one.
-                System.out.println("Sorry, I don't understand that. Try: todo, deadline, event, list, mark, "
-                        + "unmark or bye.");
+            // Every handler reports problems by throwing a ShannonException, so all error
+            // messages are printed here in one place instead of being scattered around.
+            try {
+                if ("list".equals(command)) {
+                    printTasks();
+                } else if ("mark".equals(command)) {
+                    markTask(argument, true);
+                } else if ("unmark".equals(command)) {
+                    markTask(argument, false);
+                } else if ("todo".equals(command)) {
+                    addTodo(argument);
+                } else if ("deadline".equals(command)) {
+                    addDeadline(argument);
+                } else if ("event".equals(command)) {
+                    addEvent(argument);
+                } else {
+                    throw new UnknownCommandException(command);
+                }
+            } catch (ShannonException e) {
+                System.out.println(e.getMessage());
             }
             printHorizontalLine();
+
             input = scanner.nextLine();
+            words = input.trim().split("\\s+", 2);
+            command = words[0];
+            argument = words.length > 1 ? words[1] : "";
         }
 
         printHorizontalLine();
