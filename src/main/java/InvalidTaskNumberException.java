@@ -1,6 +1,6 @@
 /**
- * Thrown when {@code mark} or {@code unmark} is given something that is not a whole number,
- * e.g. {@code mark two} or {@code mark} on its own.
+ * Thrown when a command that expects a task number is given something that is not a whole
+ * number, e.g. {@code mark two}, or nothing at all.
  */
 public class InvalidTaskNumberException extends ShannonException {
 

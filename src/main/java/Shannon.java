@@ -1,12 +1,11 @@
 /** Entry point of the Shannon chatbot. */
 
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Shannon {
 
-    private static final int MAX_TASKS = 100;
-    private static final Task[] tasks = new Task[MAX_TASKS];
-    private static int taskCount = 0;
+    private static final ArrayList<Task> tasks = new ArrayList<>();
 
     private static void printHorizontalLine() {
         System.out.println("____________________________________________________________");
@@ -15,18 +14,18 @@ public class Shannon {
     /**
      * Stores an already-built task.
      * Every {@code todo}/{@code deadline}/{@code event} command funnels through here so the
-     * confirmation message and the full-list check live in exactly one place.
-     *
-     * @throws TaskListFullException if the list already holds {@value #MAX_TASKS} tasks
+     * confirmation message lives in exactly one place.
      */
-    private static void addTask(Task task) throws TaskListFullException {
-        if (taskCount == MAX_TASKS) {
-            throw new TaskListFullException(MAX_TASKS);
-        }
-        tasks[taskCount] = task;
-        taskCount++;
+    private static void addTask(Task task) {
+        tasks.add(task);
         System.out.println("Got it. I've added this task:");
         System.out.println("  " + task);
+        printTaskCount();
+    }
+
+    /** Reports how many tasks are left, after a task has been added or deleted. */
+    private static void printTaskCount() {
+        int taskCount = tasks.size();
         System.out.println("Now you have " + taskCount + (taskCount == 1 ? " task" : " tasks") + " in the list.");
     }
 
@@ -35,7 +34,6 @@ public class Shannon {
      *
      * @param argument text after the command word
      * @throws EmptyDescriptionException if no description was given
-     * @throws TaskListFullException     if the list is full
      */
     private static void addTodo(String argument) throws ShannonException {
         String description = argument.trim();
@@ -51,7 +49,6 @@ public class Shannon {
      * @param argument text after the command word
      * @throws MissingDeadlineByException if the {@code /by} part is missing or blank
      * @throws EmptyDescriptionException  if no description was given before the {@code /by}
-     * @throws TaskListFullException      if the list is full
      */
     private static void addDeadline(String argument) throws ShannonException {
         // Split on the marker itself rather than " /by ", so that "deadline /by Friday"
@@ -73,7 +70,6 @@ public class Shannon {
      * @param argument text after the command word
      * @throws MissingEventTimeException if the {@code /from} or {@code /to} part is missing or blank
      * @throws EmptyDescriptionException if no description was given before the {@code /from}
-     * @throws TaskListFullException     if the list is full
      */
     private static void addEvent(String argument) throws ShannonException {
         // Split on the markers themselves (see addDeadline) so a missing description is
@@ -91,13 +87,56 @@ public class Shannon {
 
     /** Prints the tasks in the order they were added, numbered from 1. */
     private static void printTasks() {
-        if (taskCount == 0) {
+        if (tasks.isEmpty()) {
             System.out.println("Your list is empty!");
             return;
         }
-        for (int i = 0; i < taskCount; i++) {
-            System.out.println((i + 1) + ". " + tasks[i]);
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println((i + 1) + ". " + tasks.get(i));
         }
+    }
+
+    /**
+     * Reads a task number typed by the user and turns it into a position in {@link #tasks}.
+     * Shared by {@code mark}, {@code unmark} and {@code delete} so all three report a bad
+     * task number in the same way.
+     *
+     * @param argument text after the command word, expected to be a task number counted from 1
+     * @param command  the command word, so the example in any error message matches what was typed
+     * @return the matching index, counted from 0
+     * @throws InvalidTaskNumberException if the argument is not a whole number
+     * @throws TaskNotFoundException      if the number does not match any task in the list
+     */
+    private static int parseTaskIndex(String argument, String command) throws ShannonException {
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(argument.trim());
+        } catch (NumberFormatException e) {
+            // Translate Java's low-level parsing error into one of our own, so the command
+            // loop only ever has to know about ShannonException.
+            throw new InvalidTaskNumberException(command, argument.trim());
+        }
+        if (taskNumber < 1 || taskNumber > tasks.size()) {
+            throw new TaskNotFoundException(taskNumber, tasks.size());
+        }
+        return taskNumber - 1; // the user counts from 1, the list from 0
+    }
+
+    /**
+     * Handles {@code delete <task number>}.
+     *
+     * @param argument text after the command word, expected to be a task number counted from 1
+     * @throws InvalidTaskNumberException if the argument is not a whole number
+     * @throws TaskNotFoundException      if the number does not match any task in the list
+     */
+    private static void deleteTask(String argument) throws ShannonException {
+        // ArrayList.remove(int) takes the task out and returns it, so the confirmation can
+        // still show what was deleted. It also shifts the later tasks down to close the gap,
+        // which with a plain array we would have had to do by hand.
+        Task task = tasks.remove(parseTaskIndex(argument, "delete"));
+        System.out.println("Noted. I've removed this task:");
+        System.out.println("  " + task);
+        printTaskCount();
     }
 
     /**
@@ -110,18 +149,7 @@ public class Shannon {
      */
     private static void markTask(String argument, boolean isDone) throws ShannonException {
         String command = isDone ? "mark" : "unmark";
-        int taskNumber;
-        try {
-            taskNumber = Integer.parseInt(argument.trim());
-        } catch (NumberFormatException e) {
-            // Translate Java's low-level parsing error into one of our own, so the command
-            // loop only ever has to know about ShannonException.
-            throw new InvalidTaskNumberException(command, argument.trim());
-        }
-        if (taskNumber < 1 || taskNumber > taskCount) {
-            throw new TaskNotFoundException(taskNumber, taskCount);
-        }
-        Task task = tasks[taskNumber - 1]; // account for one-indexing
+        Task task = tasks.get(parseTaskIndex(argument, command));
         if (isDone) {
             task.markDone();
             System.out.println("Nice! I've marked this task as done:");
@@ -169,6 +197,8 @@ public class Shannon {
                     markTask(argument, true);
                 } else if ("unmark".equals(command)) {
                     markTask(argument, false);
+                } else if ("delete".equals(command)) {
+                    deleteTask(argument);
                 } else if ("todo".equals(command)) {
                     addTodo(argument);
                 } else if ("deadline".equals(command)) {
