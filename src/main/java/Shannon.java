@@ -4,6 +4,9 @@
  * The class name must match the file name ({@code Shannon.java}) because the
  * class is {@code public} - this is a Java requirement, not just a convention.
  */
+
+import java.util.Scanner;
+
 public class Shannon {
   
     private static void printHorizontalLine() {
@@ -11,6 +14,10 @@ public class Shannon {
     }
 
     public static void main(String[] args) {
+        
+        Scanner scanner = new Scanner(System.in); 
+
+
         String banner = "   oo_    \\\\  //       \\\\\\  ///\\\\\\  ///   .-.   \\\\\\  ///\n"
                 + "  /  _)-< (o)(o)   /)  ((O)(O))((O)(O)) c(O_O)c ((O)(O))\n"
                 + "  \\__ `.  ||  || (o)(O) | \\ ||  | \\ || ,'.---.`, | \\ ||\n"
@@ -22,6 +29,18 @@ public class Shannon {
         System.out.println(banner);
         System.out.println("Hello! I'm Shannon!"); 
         System.out.println("What can I do for you?");
+        printHorizontalLine();
+
+        String exitString = "bye";
+        String input = scanner.nextLine();
+
+        while (!exitString.equals(input)) {
+          printHorizontalLine();
+          System.out.println(input);
+          printHorizontalLine();
+          input = scanner.nextLine();
+        }
+
         printHorizontalLine();
         System.out.println("Bye. Hope to see you again soon!");
         printHorizontalLine();
