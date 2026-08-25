@@ -18,4 +18,10 @@ public class Event extends Task {
     public String toString() {
         return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
     }
+
+    /** Renders as {@code E | 0 | team meeting | 2/10/2019 2pm | 4pm}. */
+    @Override
+    public String toFileFormat() {
+        return encode("E") + " | " + escape(from) + " | " + escape(to);
+    }
 }

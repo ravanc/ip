@@ -16,4 +16,10 @@ public class Deadline extends Task {
     public String toString() {
         return "[D]" + super.toString() + " (by: " + by + ")";
     }
+
+    /** Renders as {@code D | 0 | submit report | 11/10/2019 5pm}. */
+    @Override
+    public String toFileFormat() {
+        return encode("D") + " | " + escape(by);
+    }
 }

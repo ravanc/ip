@@ -5,22 +5,56 @@ import java.util.Scanner;
 
 public class Shannon {
 
+    /** Where the task list is saved, relative to the project root. */
+    private static final String DATA_FILE_PATH = "./data/duke.txt";
+
     private static final ArrayList<Task> tasks = new ArrayList<>();
+
+    private static final Storage storage = new Storage(DATA_FILE_PATH);
 
     private static void printHorizontalLine() {
         System.out.println("____________________________________________________________");
     }
 
     /**
-     * Stores an already-built task.
+     * Stores an already-built task, then writes the whole list to disk.
      * Every {@code todo}/{@code deadline}/{@code event} command funnels through here so the
-     * confirmation message lives in exactly one place.
+     * confirmation message and the save live in exactly one place.
+     *
+     * @throws StorageException if the task was added but could not be saved to disk
      */
-    private static void addTask(Task task) {
+    private static void addTask(Task task) throws ShannonException {
         tasks.add(task);
         System.out.println("Got it. I've added this task:");
         System.out.println("  " + task);
         printTaskCount();
+        // Saved last, so the user always sees the confirmation first: if saving fails, the task
+        // really is in the list, and the warning that follows says only that it is not on disk.
+        storage.save(tasks);
+    }
+
+    /**
+     * Fills {@link #tasks} from the save file at start-up.
+     * <p>
+     * Any problem here is reported and then ignored: a chatbot that refuses to start because of
+     * a damaged save file is less useful than one that starts empty and says so.
+     */
+    private static void loadTasks() {
+        try {
+            tasks.addAll(storage.load());
+            if (!tasks.isEmpty()) {
+                System.out.println("I've loaded " + tasks.size()
+                        + (tasks.size() == 1 ? " task" : " tasks") + " from your last session.");
+            }
+            int skipped = storage.getSkippedLineCount();
+            if (skipped > 0) {
+                System.out.println("I couldn't understand " + skipped
+                        + (skipped == 1 ? " line" : " lines") + " in " + DATA_FILE_PATH
+                        + ", so I've left " + (skipped == 1 ? "it" : "them") + " out.");
+            }
+        } catch (StorageException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     /** Reports how many tasks are left, after a task has been added or deleted. */
@@ -128,6 +162,7 @@ public class Shannon {
      * @param argument text after the command word, expected to be a task number counted from 1
      * @throws InvalidTaskNumberException if the argument is not a whole number
      * @throws TaskNotFoundException      if the number does not match any task in the list
+     * @throws StorageException           if the shortened list could not be saved to disk
      */
     private static void deleteTask(String argument) throws ShannonException {
         // ArrayList.remove(int) takes the task out and returns it, so the confirmation can
@@ -137,6 +172,7 @@ public class Shannon {
         System.out.println("Noted. I've removed this task:");
         System.out.println("  " + task);
         printTaskCount();
+        storage.save(tasks);
     }
 
     /**
@@ -146,6 +182,7 @@ public class Shannon {
      * @param isDone   {@code true} for {@code mark}, {@code false} for {@code unmark}
      * @throws InvalidTaskNumberException if the argument is not a whole number
      * @throws TaskNotFoundException      if the number does not match any task in the list
+     * @throws StorageException           if the changed list could not be saved to disk
      */
     private static void markTask(String argument, boolean isDone) throws ShannonException {
         String command = isDone ? "mark" : "unmark";
@@ -158,6 +195,7 @@ public class Shannon {
             System.out.println("OK, I've marked this task as not done yet:");
         }
         System.out.println("  " + task);
+        storage.save(tasks);
     }
 
     public static void main(String[] args) {
@@ -176,6 +214,7 @@ public class Shannon {
         System.out.println(banner);
         System.out.println("Hello! I'm Shannon!"); 
         System.out.println("What can I do for you?");
+        loadTasks();
         printHorizontalLine();
 
         String input = scanner.nextLine();

@@ -13,4 +13,10 @@ public class Todo extends Task {
     public String toString() {
         return "[T]" + super.toString();
     }
+
+    /** Renders as {@code T | 1 | visit new theme park}. */
+    @Override
+    public String toFileFormat() {
+        return encode("T");
+    }
 }
