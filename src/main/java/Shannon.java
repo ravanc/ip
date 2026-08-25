@@ -78,11 +78,12 @@ public class Shannon {
     }
 
     /**
-     * Handles {@code deadline <description> /by <when>}.
+     * Handles {@code deadline <description> /by <yyyy-mm-dd>}.
      *
      * @param argument text after the command word
      * @throws MissingDeadlineByException if the {@code /by} part is missing or blank
      * @throws EmptyDescriptionException  if no description was given before the {@code /by}
+     * @throws InvalidDateException       if the {@code /by} part is not a date in {@code yyyy-mm-dd} form
      */
     private static void addDeadline(String argument) throws ShannonException {
         // Split on the marker itself rather than " /by ", so that "deadline /by Friday"
@@ -93,9 +94,11 @@ public class Shannon {
             throw new MissingDeadlineByException();
         }
         if (parts[0].trim().isEmpty()) {
-            throw new EmptyDescriptionException("deadline", "deadline submit report /by 11/10/2019 5pm");
+            throw new EmptyDescriptionException("deadline", "deadline submit report /by 2026-08-09");
         }
-        addTask(new Deadline(parts[0].trim(), parts[1].trim()));
+        // The date is turned into a LocalDate here, at the edge of the program, so that a
+        // Deadline object can never hold a date we failed to understand.
+        addTask(new Deadline(parts[0].trim(), Deadline.parseBy(parts[1])));
     }
 
     /**
@@ -114,7 +117,7 @@ public class Shannon {
             throw new MissingEventTimeException();
         }
         if (parts[0].trim().isEmpty()) {
-            throw new EmptyDescriptionException("event", "event team meeting /from 2/10/2019 2pm /to 4pm");
+            throw new EmptyDescriptionException("event", "event team meeting /from 2026-08-09 2pm /to 4pm");
         }
         addTask(new Event(parts[0].trim(), times[0].trim(), times[1].trim()));
     }

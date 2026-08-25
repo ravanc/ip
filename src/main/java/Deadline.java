@@ -1,25 +1,70 @@
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Locale;
+
 /**
- * A task that must be done before a specific date/time,
- * e.g. {@code submit report by 11/10/2019 5pm}.
+ * A task that must be done before a specific date, e.g. {@code submit report by 2026-08-09}.
+ * <p>
+ * The date is kept as a {@link LocalDate} rather than as the text the user typed, so that the
+ * program understands it as a date: it can be printed in a friendlier format than it was typed
+ * in, and later features (sorting, "what is due this week?") become possible without re-reading
+ * the text. {@code LocalDate} is used rather than {@code LocalDateTime} because the commands
+ * accept a date only; storing a time we never ask for would be inventing information.
  */
 public class Deadline extends Task {
 
-    protected String by;
+    /** The format the user types and the format written to the save file, e.g. {@code 2026-08-09}. */
+    private static final DateTimeFormatter INPUT_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
 
-    public Deadline(String description, String by) {
+    /**
+     * The format shown to the user, e.g. {@code Aug 09 2026}.
+     * {@link Locale#ENGLISH} is fixed explicitly so the month name does not change with whatever
+     * locale the machine happens to be set to.
+     */
+    private static final DateTimeFormatter DISPLAY_FORMAT =
+            DateTimeFormatter.ofPattern("MMM dd yyyy", Locale.ENGLISH);
+
+    protected LocalDate by;
+
+    public Deadline(String description, LocalDate by) {
         super(description);
         this.by = by;
     }
 
-    /** Renders as {@code [D][X] submit report (by: 11/10/2019 5pm)}. */
-    @Override
-    public String toString() {
-        return "[D]" + super.toString() + " (by: " + by + ")";
+    /**
+     * Turns the text after {@code /by} into a date.
+     * <p>
+     * Kept here, next to the formats, so the command handler and the save-file loader agree on
+     * exactly which dates are acceptable instead of each having their own copy of the rule.
+     *
+     * @param text the date as typed, expected in {@code yyyy-mm-dd} form
+     * @return the date it names
+     * @throws InvalidDateException if the text is not a date in that form
+     */
+    public static LocalDate parseBy(String text) throws InvalidDateException {
+        try {
+            return LocalDate.parse(text.trim(), INPUT_FORMAT);
+        } catch (DateTimeParseException e) {
+            // Translate java.time's parsing error into one of our own, so the command loop only
+            // ever has to know about ShannonException.
+            throw new InvalidDateException(text.trim());
+        }
     }
 
-    /** Renders as {@code D | 0 | submit report | 11/10/2019 5pm}. */
+    /** Renders as {@code [D][X] submit report (by: Aug 09 2026)}. */
+    @Override
+    public String toString() {
+        return "[D]" + super.toString() + " (by: " + by.format(DISPLAY_FORMAT) + ")";
+    }
+
+    /**
+     * Renders as {@code D | 0 | submit report | 2026-08-09}.
+     * The date is written in the input format, not the display format, so that a saved line can
+     * be read back by the same {@link #parseBy(String)} the user's typing goes through.
+     */
     @Override
     public String toFileFormat() {
-        return encode("D") + " | " + escape(by);
+        return encode("D") + " | " + escape(by.format(INPUT_FORMAT));
     }
 }

@@ -1,6 +1,6 @@
 /**
  * A task that starts at a specific date/time and ends at a specific date/time,
- * e.g. {@code team project meeting 2/10/2019 2pm to 4pm}.
+ * e.g. {@code team project meeting 2026-08-09 2pm to 4pm}.
  */
 public class Event extends Task {
 
@@ -19,7 +19,7 @@ public class Event extends Task {
         return "[E]" + super.toString() + " (from: " + from + " to: " + to + ")";
     }
 
-    /** Renders as {@code E | 0 | team meeting | 2/10/2019 2pm | 4pm}. */
+    /** Renders as {@code E | 0 | team meeting | 2026-08-09 2pm | 4pm}. */
     @Override
     public String toFileFormat() {
         return encode("E") + " | " + escape(from) + " | " + escape(to);

@@ -14,7 +14,7 @@ import java.util.List;
  * One task per line, fields separated by {@code " | "}:
  * <pre>
  * T | 1 | read book
- * D | 0 | return book | June 6th
+ * D | 0 | return book | 2026-08-09
  * E | 0 | project meeting | Aug 6th | 2-4pm
  * </pre>
  * The first field is the task type, the second is {@code 1} for done and {@code 0} for not done.
@@ -160,9 +160,7 @@ public class Storage {
         // damaged even if its type letter is valid.
         Task task = switch (fields.get(0)) {
         case "T" -> fields.size() == 3 ? new Todo(description) : null;
-        case "D" -> fields.size() == 4 && !fields.get(3).isEmpty()
-                ? new Deadline(description, fields.get(3))
-                : null;
+        case "D" -> fields.size() == 4 ? parseDeadline(description, fields.get(3)) : null;
         case "E" -> fields.size() == 5 && !fields.get(3).isEmpty() && !fields.get(4).isEmpty()
                 ? new Event(description, fields.get(3), fields.get(4))
                 : null;
@@ -172,5 +170,25 @@ public class Storage {
             task.markDone();
         }
         return task;
+    }
+
+    /**
+     * Rebuilds a {@link Deadline} from a saved line, reusing {@link Deadline#parseBy(String)} so
+     * that the file accepts exactly the dates the user is allowed to type.
+     * <p>
+     * A separate method rather than another branch of the {@code switch} above, because a
+     * {@code try}/{@code catch} does not fit inside a switch expression's arrow.
+     *
+     * @param description the task description, already unescaped
+     * @param by          the saved date, expected in {@code yyyy-mm-dd} form
+     * @return the task, or {@code null} if the date could not be read, which makes the caller
+     *         skip the line like any other damaged one
+     */
+    private static Task parseDeadline(String description, String by) {
+        try {
+            return new Deadline(description, Deadline.parseBy(by));
+        } catch (InvalidDateException e) {
+            return null;
+        }
     }
 }
