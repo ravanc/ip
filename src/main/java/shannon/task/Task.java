@@ -21,11 +21,11 @@ public abstract class Task {
         this.isDone = false;
     }
 
-    /**
-     * Returns the marker shown inside the brackets in the task list.
-     *
-     * @return {@code "X"} if the task is done, a single space otherwise
-     */
+    /** Returns the task's description, exactly as the user typed it. */
+    public String getDescription() {
+        return description;
+    }
+
     public String getStatusIcon() {
         return isDone ? "X" : " ";
     }

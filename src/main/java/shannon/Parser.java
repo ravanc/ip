@@ -1,6 +1,7 @@
 package shannon;
 
 import shannon.exception.EmptyDescriptionException;
+import shannon.exception.EmptyKeywordException;
 import shannon.exception.InvalidDateException;
 import shannon.exception.InvalidTaskNumberException;
 import shannon.exception.MissingDeadlineByException;
@@ -71,6 +72,25 @@ public class Parser {
             // loop only ever has to know about ShannonException.
             throw new InvalidTaskNumberException(command, argument.trim());
         }
+    }
+
+    /**
+     * Reads {@code find <keyword>}.
+     * <p>
+     * The whole of the rest of the line is the keyword, so {@code find team meeting} looks for
+     * that phrase rather than for either word on its own. Splitting the argument into separate
+     * words would be a larger feature: it would have to decide whether a task must contain all
+     * of them or any of them, which is more than the command needs to be useful.
+     *
+     * @return the text to search for, with the spaces around it removed
+     * @throws EmptyKeywordException if no keyword was given
+     */
+    public String parseKeyword() throws ShannonException {
+        String keyword = argument.trim();
+        if (keyword.isEmpty()) {
+            throw new EmptyKeywordException();
+        }
+        return keyword;
     }
 
     /**

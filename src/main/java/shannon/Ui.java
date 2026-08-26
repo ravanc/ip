@@ -121,6 +121,24 @@ public class Ui {
     }
 
     /**
+     * Prints the tasks that matched a {@code find}, or says that none did.
+     * <p>
+     * The numbers shown here count the matches, not the positions in the whole list, so
+     * {@code delete 2} after a find does not delete the second task shown. Reusing
+     * {@link #showTaskList} keeps one numbering style; only the empty case needs its own
+     * wording, since "Your list is empty!" would be untrue when the list has tasks that simply
+     * did not match.
+     */
+    public void showFoundTasks(List<Task> tasks) {
+        if (tasks.isEmpty()) {
+            System.out.println("No matching tasks found!");
+            return;
+        }
+        System.out.println("Here are the matching tasks in your list:");
+        showTaskList(tasks);
+    }
+
+    /**
      * Reports how many tasks were restored from the save file. Says nothing when there were
      * none, so a first run is not cluttered with "I've loaded 0 tasks".
      *
