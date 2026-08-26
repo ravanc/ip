@@ -49,8 +49,8 @@ public class Storage {
     /**
      * Overwrites the save file with the given tasks, creating the data folder if it is missing.
      *
-     * @param tasks the current task list, written in the order given
-     * @throws StorageException if the file could not be written
+     * @param tasks the current task list, written in the order given.
+     * @throws StorageException if the file could not be written.
      */
     public void save(List<Task> tasks) throws StorageException {
         StringBuilder contents = new StringBuilder();
@@ -75,8 +75,8 @@ public class Storage {
      * line does not cost the user every other task in the file; {@link #getSkippedLineCount()}
      * reports how many were skipped so the user can be told.
      *
-     * @return the tasks that could be read, in file order
-     * @throws StorageException if the file exists but could not be read at all
+     * @return the tasks that could be read, in file order.
+     * @throws StorageException if the file exists but could not be read at all.
      */
     public ArrayList<Task> load() throws StorageException {
         skippedLineCount = 0;
@@ -126,8 +126,8 @@ public class Storage {
      * Splits one saved line into its fields, undoing the escaping done by
      * {@link Task#escape(String)}.
      *
-     * @param line one line of the save file
-     * @return the fields, trimmed of the spaces around each separator
+     * @param line one line of the save file.
+     * @return the fields, trimmed of the spaces around each separator.
      */
     private static List<String> splitFields(String line) {
         // The exact inverse of escape(): scan left to right, a backslash consumes the character
@@ -140,9 +140,9 @@ public class Storage {
             if (character == '\\' && i + 1 < line.length()) {
                 char escaped = line.charAt(++i);
                 current.append(switch (escaped) {
-                case 'n' -> '\n';
-                case 'r' -> '\r';
-                default -> escaped;
+                    case 'n' -> '\n';
+                    case 'r' -> '\r';
+                    default -> escaped;
                 });
             } else if (character == '|') {
                 fields.add(current.toString().trim());
@@ -178,12 +178,12 @@ public class Storage {
         // Each task type has a fixed number of fields, so a line with too many or too few is
         // damaged even if its type letter is valid.
         Task task = switch (fields.get(0)) {
-        case "T" -> fields.size() == 3 ? new Todo(description) : null;
-        case "D" -> fields.size() == 4 ? parseDeadline(description, fields.get(3)) : null;
-        case "E" -> fields.size() == 5 && !fields.get(3).isEmpty() && !fields.get(4).isEmpty()
-                ? new Event(description, fields.get(3), fields.get(4))
-                : null;
-        default -> null;
+            case "T" -> fields.size() == 3 ? new Todo(description) : null;
+            case "D" -> fields.size() == 4 ? parseDeadline(description, fields.get(3)) : null;
+            case "E" -> fields.size() == 5 && !fields.get(3).isEmpty() && !fields.get(4).isEmpty()
+                    ? new Event(description, fields.get(3), fields.get(4))
+                    : null;
+            default -> null;
         };
         if (task != null && doneFlag.equals("1")) {
             task.markDone();
@@ -195,10 +195,10 @@ public class Storage {
      * Rebuilds a {@link Deadline} from a saved line, reusing {@link Deadline#parseBy(String)} so
      * that the file accepts exactly the dates the user is allowed to type.
      *
-     * @param description the task description, already unescaped
-     * @param by          the saved date, expected in {@code yyyy-mm-dd} form
+     * @param description the task description, already unescaped.
+     * @param by          the saved date, expected in {@code yyyy-mm-dd} form.
      * @return the task, or {@code null} if the date could not be read, which makes the caller
-     *         skip the line like any other damaged one
+     *         skip the line like any other damaged one.
      */
     // A separate method rather than another branch of the switch in parseTask(), because a
     // try/catch does not fit inside a switch expression's arrow.

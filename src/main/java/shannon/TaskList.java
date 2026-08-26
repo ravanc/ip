@@ -33,7 +33,7 @@ public class TaskList {
      * Starts from tasks already restored from the save file.
      *
      * @param tasks the loaded tasks, in file order; copied so that later changes to the list
-     *              cannot be made behind this object's back
+     *              cannot be made behind this object's back.
      */
     public TaskList(List<Task> tasks) {
         this.tasks = new ArrayList<>(tasks);
@@ -99,9 +99,9 @@ public class TaskList {
      * Private, because a position is this class's own business: no caller outside should ever
      * hold one and risk using it after the list has changed.
      *
-     * @param taskNumber the number the user typed, counting from 1
-     * @return the matching index, counting from 0
-     * @throws TaskNotFoundException if the number does not match any task in the list
+     * @param taskNumber the number the user typed, counting from 1.
+     * @return the matching index, counting from 0.
+     * @throws TaskNotFoundException if the number does not match any task in the list.
      */
     private int indexOf(int taskNumber) throws TaskNotFoundException {
         if (taskNumber < 1 || taskNumber > tasks.size()) {

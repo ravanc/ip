@@ -43,7 +43,7 @@ public class Shannon {
      * {@link #run()} does; the empty list built here is what the program falls back on if that
      * reading fails.
      *
-     * @param filePath the save file to use, e.g. {@code ./data/duke.txt}
+     * @param filePath the save file to use, e.g. {@code ./data/duke.txt}.
      */
     public Shannon(String filePath) {
         ui = new Ui();
@@ -104,20 +104,20 @@ public class Shannon {
      * the one thing it does. Pulling the text apart has already happened in {@link Parser}, so
      * nothing here touches a string beyond comparing the command word.
      *
-     * @param parser the line the user typed, already split up
-     * @throws UnknownCommandException if the command word is not one we know
-     * @throws ShannonException        if the command was understood but could not be carried out
+     * @param parser the line the user typed, already split up.
+     * @throws UnknownCommandException if the command word is not one we know.
+     * @throws ShannonException        if the command was understood but could not be carried out.
      */
     private void handleCommand(Parser parser) throws ShannonException {
         switch (parser.getCommand()) {
-        case "list" -> ui.showTaskList(tasks.asList());
-        case "mark" -> markTask(parser, true);
-        case "unmark" -> markTask(parser, false);
-        case "delete" -> deleteTask(parser);
-        case "todo" -> addTask(parser.parseTodo());
-        case "deadline" -> addTask(parser.parseDeadline());
-        case "event" -> addTask(parser.parseEvent());
-        default -> throw new UnknownCommandException(parser.getCommand());
+            case "list" -> ui.showTaskList(tasks.asList());
+            case "mark" -> markTask(parser, true);
+            case "unmark" -> markTask(parser, false);
+            case "delete" -> deleteTask(parser);
+            case "todo" -> addTask(parser.parseTodo());
+            case "deadline" -> addTask(parser.parseDeadline());
+            case "event" -> addTask(parser.parseEvent());
+            default -> throw new UnknownCommandException(parser.getCommand());
         }
     }
 

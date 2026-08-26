@@ -49,9 +49,9 @@ public class Deadline extends Task {
      * Kept here, next to the formats, so the command handler and the save-file loader agree on
      * exactly which dates are acceptable instead of each having their own copy of the rule.
      *
-     * @param text the date as typed, expected in {@code yyyy-mm-dd} form
-     * @return the date it names
-     * @throws InvalidDateException if the text is not a date in that form
+     * @param text the date as typed, expected in {@code yyyy-mm-dd} form.
+     * @return the date it names.
+     * @throws InvalidDateException if the text is not a date in that form.
      */
     public static LocalDate parseBy(String text) throws InvalidDateException {
         try {

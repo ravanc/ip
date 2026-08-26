@@ -20,7 +20,8 @@ import shannon.task.Task;
 public class Ui {
 
     /** The line drawn above and below each reply, to separate one exchange from the next. */
-    private static final String HORIZONTAL_LINE = "____________________________________________________________";
+    private static final String HORIZONTAL_LINE =
+            "____________________________________________________________";
 
     /** Reads the user's typing. Kept as a field so the one scanner lasts the whole session. */
     private final Scanner scanner = new Scanner(System.in);
@@ -61,7 +62,7 @@ public class Ui {
     /**
      * Prints the explanation of something that went wrong.
      *
-     * @param message the text to show, normally a {@link ShannonException}'s message
+     * @param message the text to show, normally a {@link ShannonException}'s message.
      */
     public void showError(String message) {
         System.out.println(message);
@@ -127,7 +128,7 @@ public class Ui {
      */
     public void showLoaded(int taskCount) {
         if (taskCount > 0) {
-            System.out.println("I've loaded " + taskCount + plural(taskCount, " task", " tasks")
+            System.out.println("I've loaded " + taskCount + pluralize(taskCount, " task", " tasks")
                     + " from your last session.");
         }
     }
@@ -136,14 +137,14 @@ public class Ui {
      * Warns that part of the save file could not be read, so the user is not left wondering
      * where those tasks went. Says nothing when no lines were skipped.
      *
-     * @param skippedCount how many lines were skipped
-     * @param filePath     the save file, named so the user can go and repair it
+     * @param skippedCount how many lines were skipped.
+     * @param filePath     the save file, named so the user can go and repair it.
      */
     public void showSkippedLines(int skippedCount, String filePath) {
         if (skippedCount > 0) {
             System.out.println("I couldn't understand " + skippedCount
-                    + plural(skippedCount, " line", " lines") + " in " + filePath
-                    + ", so I've left " + plural(skippedCount, "it", "them") + " out.");
+                    + pluralize(skippedCount, " line", " lines") + " in " + filePath
+                    + ", so I've left " + pluralize(skippedCount, "it", "them") + " out.");
         }
     }
 
@@ -153,7 +154,7 @@ public class Ui {
      * @param taskCount how many tasks are in the list now
      */
     private void showTaskCount(int taskCount) {
-        System.out.println("Now you have " + taskCount + plural(taskCount, " task", " tasks")
+        System.out.println("Now you have " + taskCount + pluralize(taskCount, " task", " tasks")
                 + " in the list.");
     }
 
@@ -166,7 +167,7 @@ public class Ui {
      * @param pluralForm the wording to use otherwise
      * @return whichever of the two fits the count
      */
-    private static String plural(int count, String singular, String pluralForm) {
+    private static String pluralize(int count, String singular, String pluralForm) {
         return count == 1 ? singular : pluralForm;
     }
 }

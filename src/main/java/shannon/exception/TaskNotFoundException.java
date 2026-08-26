@@ -15,6 +15,7 @@ public class TaskNotFoundException extends ShannonException {
     public TaskNotFoundException(int taskNumber, int taskCount) {
         super(taskCount == 0
                 ? "I don't have a task numbered " + taskNumber + " because your list is empty!"
-                : "I don't have a task numbered " + taskNumber + "! Pick a number from 1 to " + taskCount + ".");
+                : "I don't have a task numbered " + taskNumber
+                        + "! Pick a number from 1 to " + taskCount + ".");
     }
 }

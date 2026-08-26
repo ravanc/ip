@@ -27,7 +27,7 @@ public abstract class Task {
      * @return {@code "X"} if the task is done, a single space otherwise
      */
     public String getStatusIcon() {
-        return (isDone ? "X" : " ");
+        return isDone ? "X" : " ";
     }
 
     /** Marks this task as done. */
@@ -57,8 +57,8 @@ public abstract class Task {
     /**
      * Builds the part of the save line that every task shares.
      *
-     * @param type the single letter identifying the subclass in the save file
-     * @return e.g. {@code T | 1 | read book}
+     * @param type the single letter identifying the subclass in the save file.
+     * @return e.g. {@code T | 1 | read book}.
      */
     protected String encode(String type) {
         // The type and the done flag are values we control, so only the description needs escaping.
@@ -72,8 +72,8 @@ public abstract class Task {
      * carriage return; without this a description such as {@code buy milk | eggs} would look like
      * an extra field when the file is read back.
      *
-     * @param field the raw text of one field
-     * @return the same text, safe to write as one part of one line
+     * @param field the raw text of one field.
+     * @return the same text, safe to write as one part of one line.
      */
     protected static String escape(String field) {
         // A single pass, not chained String.replace() calls: chaining is correct only if backslash
@@ -81,11 +81,11 @@ public abstract class Task {
         StringBuilder escaped = new StringBuilder();
         for (char character : field.toCharArray()) {
             switch (character) {
-            case '\\' -> escaped.append("\\\\");
-            case '|' -> escaped.append("\\|");
-            case '\n' -> escaped.append("\\n");
-            case '\r' -> escaped.append("\\r");
-            default -> escaped.append(character);
+                case '\\' -> escaped.append("\\\\");
+                case '|' -> escaped.append("\\|");
+                case '\n' -> escaped.append("\\n");
+                case '\r' -> escaped.append("\\r");
+                default -> escaped.append(character);
             }
         }
         return escaped.toString();

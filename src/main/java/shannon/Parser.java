@@ -35,7 +35,7 @@ public class Parser {
     /**
      * Splits a line into its command word and the rest.
      *
-     * @param input one line exactly as the user typed it
+     * @param input one line exactly as the user typed it.
      */
     public Parser(String input) {
         // Limit of 2, so that a command typed on its own (e.g. "todo") still yields a command
@@ -60,8 +60,8 @@ public class Parser {
      * Only the reading is done here. Whether that number refers to a task that exists is
      * {@link TaskList}'s business, and is checked when the number is used.
      *
-     * @return the number the user typed, counting from 1
-     * @throws InvalidTaskNumberException if the argument is not a whole number
+     * @return the number the user typed, counting from 1.
+     * @throws InvalidTaskNumberException if the argument is not a whole number.
      */
     public int parseTaskNumber() throws ShannonException {
         try {
