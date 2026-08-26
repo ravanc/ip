@@ -94,6 +94,11 @@ public class Storage {
         return tasks;
     }
 
+    /** Returns the save file this Storage reads and writes, for messages that name it. */
+    public String getFilePath() {
+        return file.toString();
+    }
+
     /** Returns how many lines the last {@link #load()} skipped because it could not read them. */
     public int getSkippedLineCount() {
         return skippedLineCount;

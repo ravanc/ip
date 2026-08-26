@@ -1,19 +1,115 @@
-/** Entry point of the Shannon chatbot. */
-
-import java.util.ArrayList;
-import java.util.Scanner;
-
+/**
+ * The Shannon chatbot: a to-do list you talk to at the terminal.
+ * <p>
+ * This class is now only the conductor. It holds the four collaborators that do the actual
+ * work and decides, for each command, which of them to ask:
+ * <ul>
+ *   <li>{@link Ui} &mdash; everything the user types and sees</li>
+ *   <li>{@link Parser} &mdash; making sense of a typed line</li>
+ *   <li>{@link TaskList} &mdash; the tasks, and the rules for reaching them</li>
+ *   <li>{@link Storage} &mdash; loading from and saving to the file</li>
+ * </ul>
+ * The fields are ordinary instance fields set up by the constructor, rather than statics, so
+ * that a Shannon is a thing you can make: two of them with different save files would not
+ * interfere, and a test could point one at a scratch file.
+ */
 public class Shannon {
 
-    /** Where the task list is saved, relative to the project root. */
+    /** Where the task list is saved by default, relative to the project root. */
     private static final String DATA_FILE_PATH = "./data/duke.txt";
 
-    private static final ArrayList<Task> tasks = new ArrayList<>();
+    private final Ui ui;
 
-    private static final Storage storage = new Storage(DATA_FILE_PATH);
+    private final Storage storage;
 
-    private static void printHorizontalLine() {
-        System.out.println("____________________________________________________________");
+    /** Not final: {@link #loadTasks()} replaces it with the list restored from disk. */
+    private TaskList tasks;
+
+    /**
+     * Sets up the chatbot without touching the disk or the screen.
+     * <p>
+     * The save file is deliberately <em>not</em> read here, even though the collaborator that
+     * reads it is created here. Loading has to report what it found, and those messages belong
+     * after the greeting: a user should see the chatbot start up before they see a report about
+     * their save file. Reading the file is therefore the first thing {@link #run()} does, and
+     * the empty list built here is what the program falls back on if that reading fails.
+     *
+     * @param filePath the save file to use, e.g. {@code ./data/duke.txt}
+     */
+    public Shannon(String filePath) {
+        ui = new Ui();
+        storage = new Storage(filePath);
+        tasks = new TaskList();
+    }
+
+    /**
+     * Greets the user, restores the saved tasks, then answers commands until {@code bye}.
+     */
+    public void run() {
+        ui.showLine();
+        ui.showWelcome();
+        loadTasks();
+        ui.showLine();
+
+        Parser parser = new Parser(ui.readCommand());
+        while (!"bye".equals(parser.getCommand())) {
+            ui.showLine();
+            // Every handler reports problems by throwing a ShannonException, so all error
+            // messages are printed here in one place instead of being scattered around.
+            try {
+                handleCommand(parser);
+            } catch (ShannonException e) {
+                ui.showError(e.getMessage());
+            }
+            ui.showLine();
+
+            parser = new Parser(ui.readCommand());
+        }
+
+        ui.showLine();
+        ui.showGoodbye();
+        ui.showLine();
+    }
+
+    /**
+     * Replaces {@link #tasks} with what the save file holds, and says what was found.
+     * <p>
+     * Any problem here is reported and then ignored: a chatbot that refuses to start because of
+     * a damaged save file is less useful than one that starts empty and says so. The empty list
+     * built by the constructor stays in place in that case, so there is always a list to use.
+     */
+    private void loadTasks() {
+        try {
+            tasks = new TaskList(storage.load());
+            ui.showLoaded(tasks.size());
+            ui.showSkippedLines(storage.getSkippedLineCount(), storage.getFilePath());
+        } catch (StorageException e) {
+            ui.showError(e.getMessage());
+        }
+    }
+
+    /**
+     * Carries out one command the user typed.
+     * <p>
+     * This is the whole vocabulary of the chatbot in one place: each branch names a command and
+     * the one thing it does. Reading the text apart has already happened, in {@link Parser}, so
+     * nothing here touches a string beyond comparing the command word.
+     *
+     * @param parser the line the user typed, already split up
+     * @throws UnknownCommandException if the command word is not one we know
+     * @throws ShannonException        if the command was understood but could not be carried out
+     */
+    private void handleCommand(Parser parser) throws ShannonException {
+        switch (parser.getCommand()) {
+        case "list" -> ui.showTaskList(tasks.asList());
+        case "mark" -> markTask(parser, true);
+        case "unmark" -> markTask(parser, false);
+        case "delete" -> deleteTask(parser);
+        case "todo" -> addTask(parser.parseTodo());
+        case "deadline" -> addTask(parser.parseDeadline());
+        case "event" -> addTask(parser.parseEvent());
+        default -> throw new UnknownCommandException(parser.getCommand());
+        }
     }
 
     /**
@@ -23,246 +119,48 @@ public class Shannon {
      *
      * @throws StorageException if the task was added but could not be saved to disk
      */
-    private static void addTask(Task task) throws ShannonException {
+    private void addTask(Task task) throws ShannonException {
         tasks.add(task);
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + task);
-        printTaskCount();
+        ui.showTaskAdded(task, tasks.size());
         // Saved last, so the user always sees the confirmation first: if saving fails, the task
         // really is in the list, and the warning that follows says only that it is not on disk.
-        storage.save(tasks);
-    }
-
-    /**
-     * Fills {@link #tasks} from the save file at start-up.
-     * <p>
-     * Any problem here is reported and then ignored: a chatbot that refuses to start because of
-     * a damaged save file is less useful than one that starts empty and says so.
-     */
-    private static void loadTasks() {
-        try {
-            tasks.addAll(storage.load());
-            if (!tasks.isEmpty()) {
-                System.out.println("I've loaded " + tasks.size()
-                        + (tasks.size() == 1 ? " task" : " tasks") + " from your last session.");
-            }
-            int skipped = storage.getSkippedLineCount();
-            if (skipped > 0) {
-                System.out.println("I couldn't understand " + skipped
-                        + (skipped == 1 ? " line" : " lines") + " in " + DATA_FILE_PATH
-                        + ", so I've left " + (skipped == 1 ? "it" : "them") + " out.");
-            }
-        } catch (StorageException e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
-    /** Reports how many tasks are left, after a task has been added or deleted. */
-    private static void printTaskCount() {
-        int taskCount = tasks.size();
-        System.out.println("Now you have " + taskCount + (taskCount == 1 ? " task" : " tasks") + " in the list.");
-    }
-
-    /**
-     * Handles {@code todo <description>}.
-     *
-     * @param argument text after the command word
-     * @throws EmptyDescriptionException if no description was given
-     */
-    private static void addTodo(String argument) throws ShannonException {
-        String description = argument.trim();
-        if (description.isEmpty()) {
-            throw new EmptyDescriptionException("todo", "todo visit new theme park");
-        }
-        addTask(new Todo(description));
-    }
-
-    /**
-     * Handles {@code deadline <description> /by <yyyy-mm-dd>}.
-     *
-     * @param argument text after the command word
-     * @throws MissingDeadlineByException if the {@code /by} part is missing or blank
-     * @throws EmptyDescriptionException  if no description was given before the {@code /by}
-     * @throws InvalidDateException       if the {@code /by} part is not a date in {@code yyyy-mm-dd} form
-     */
-    private static void addDeadline(String argument) throws ShannonException {
-        // Split on the marker itself rather than " /by ", so that "deadline /by Friday"
-        // is reported as a missing description rather than a missing /by.
-        String[] parts = argument.split("/by", 2);
-        // The two checks are separate so the user is told exactly which half is missing.
-        if (parts.length < 2 || parts[1].trim().isEmpty()) {
-            throw new MissingDeadlineByException();
-        }
-        if (parts[0].trim().isEmpty()) {
-            throw new EmptyDescriptionException("deadline", "deadline submit report /by 2026-08-09");
-        }
-        // The date is turned into a LocalDate here, at the edge of the program, so that a
-        // Deadline object can never hold a date we failed to understand.
-        addTask(new Deadline(parts[0].trim(), Deadline.parseBy(parts[1])));
-    }
-
-    /**
-     * Handles {@code event <description> /from <start> /to <end>}.
-     *
-     * @param argument text after the command word
-     * @throws MissingEventTimeException if the {@code /from} or {@code /to} part is missing or blank
-     * @throws EmptyDescriptionException if no description was given before the {@code /from}
-     */
-    private static void addEvent(String argument) throws ShannonException {
-        // Split on the markers themselves (see addDeadline) so a missing description is
-        // reported as such instead of looking like a missing /from.
-        String[] parts = argument.split("/from", 2);
-        String[] times = parts.length < 2 ? new String[0] : parts[1].split("/to", 2);
-        if (times.length < 2 || times[0].trim().isEmpty() || times[1].trim().isEmpty()) {
-            throw new MissingEventTimeException();
-        }
-        if (parts[0].trim().isEmpty()) {
-            throw new EmptyDescriptionException("event", "event team meeting /from 2026-08-09 2pm /to 4pm");
-        }
-        addTask(new Event(parts[0].trim(), times[0].trim(), times[1].trim()));
-    }
-
-    /** Prints the tasks in the order they were added, numbered from 1. */
-    private static void printTasks() {
-        if (tasks.isEmpty()) {
-            System.out.println("Your list is empty!");
-            return;
-        }
-        for (int i = 0; i < tasks.size(); i++) {
-            System.out.println((i + 1) + ". " + tasks.get(i));
-        }
-    }
-
-    /**
-     * Reads a task number typed by the user and turns it into a position in {@link #tasks}.
-     * Shared by {@code mark}, {@code unmark} and {@code delete} so all three report a bad
-     * task number in the same way.
-     *
-     * @param argument text after the command word, expected to be a task number counted from 1
-     * @param command  the command word, so the example in any error message matches what was typed
-     * @return the matching index, counted from 0
-     * @throws InvalidTaskNumberException if the argument is not a whole number
-     * @throws TaskNotFoundException      if the number does not match any task in the list
-     */
-    private static int parseTaskIndex(String argument, String command) throws ShannonException {
-        int taskNumber;
-        try {
-            taskNumber = Integer.parseInt(argument.trim());
-        } catch (NumberFormatException e) {
-            // Translate Java's low-level parsing error into one of our own, so the command
-            // loop only ever has to know about ShannonException.
-            throw new InvalidTaskNumberException(command, argument.trim());
-        }
-        if (taskNumber < 1 || taskNumber > tasks.size()) {
-            throw new TaskNotFoundException(taskNumber, tasks.size());
-        }
-        return taskNumber - 1; // the user counts from 1, the list from 0
+        storage.save(tasks.asList());
     }
 
     /**
      * Handles {@code delete <task number>}.
      *
-     * @param argument text after the command word, expected to be a task number counted from 1
      * @throws InvalidTaskNumberException if the argument is not a whole number
      * @throws TaskNotFoundException      if the number does not match any task in the list
      * @throws StorageException           if the shortened list could not be saved to disk
      */
-    private static void deleteTask(String argument) throws ShannonException {
-        // ArrayList.remove(int) takes the task out and returns it, so the confirmation can
-        // still show what was deleted. It also shifts the later tasks down to close the gap,
-        // which with a plain array we would have had to do by hand.
-        Task task = tasks.remove(parseTaskIndex(argument, "delete"));
-        System.out.println("Noted. I've removed this task:");
-        System.out.println("  " + task);
-        printTaskCount();
-        storage.save(tasks);
+    private void deleteTask(Parser parser) throws ShannonException {
+        // deleteTask returns the task it removed, so the confirmation can still show what went.
+        Task task = tasks.deleteTask(parser.parseTaskNumber());
+        ui.showTaskDeleted(task, tasks.size());
+        storage.save(tasks.asList());
     }
 
     /**
      * Handles both {@code mark} and {@code unmark}, which differ only in the flag they set.
      *
-     * @param argument text after the command word, expected to be a task number counted from 1
-     * @param isDone   {@code true} for {@code mark}, {@code false} for {@code unmark}
+     * @param isDone {@code true} for {@code mark}, {@code false} for {@code unmark}
      * @throws InvalidTaskNumberException if the argument is not a whole number
      * @throws TaskNotFoundException      if the number does not match any task in the list
      * @throws StorageException           if the changed list could not be saved to disk
      */
-    private static void markTask(String argument, boolean isDone) throws ShannonException {
-        String command = isDone ? "mark" : "unmark";
-        Task task = tasks.get(parseTaskIndex(argument, command));
+    private void markTask(Parser parser, boolean isDone) throws ShannonException {
+        Task task = tasks.getTask(parser.parseTaskNumber());
         if (isDone) {
             task.markDone();
-            System.out.println("Nice! I've marked this task as done:");
         } else {
             task.unmarkDone();
-            System.out.println("OK, I've marked this task as not done yet:");
         }
-        System.out.println("  " + task);
-        storage.save(tasks);
+        ui.showTaskMarked(task, isDone);
+        storage.save(tasks.asList());
     }
 
     public static void main(String[] args) {
-        
-        Scanner scanner = new Scanner(System.in); 
-
-
-        String banner = "   oo_    \\\\  //       \\\\\\  ///\\\\\\  ///   .-.   \\\\\\  ///\n"
-                + "  /  _)-< (o)(o)   /)  ((O)(O))((O)(O)) c(O_O)c ((O)(O))\n"
-                + "  \\__ `.  ||  || (o)(O) | \\ ||  | \\ || ,'.---.`, | \\ ||\n"
-                + "     `. | |(__)|  //\\\\  ||\\\\||  ||\\\\||/ /|_|_|\\ \\||\\\\||\n"
-                + "     _| | /.--.\\ |(__)| || \\ |  || \\ || \\_____/ ||| \\ |\n"
-                + "  ,-'   |-'    `-/,-. | ||  ||  ||  ||'. `---' .`||  ||\n"
-                + " (_..--'        -'   ''(_/  \\_)(_/  \\_) `-...-' (_/  \\_)\n";
-        printHorizontalLine();
-        System.out.println(banner);
-        System.out.println("Hello! I'm Shannon!"); 
-        System.out.println("What can I do for you?");
-        loadTasks();
-        printHorizontalLine();
-
-        String input = scanner.nextLine();
-
-        // Split into the command word and everything after it, so that a command typed on its
-        // own (e.g. "todo") is still recognised and can report the right error.
-        String[] words = input.trim().split("\\s+", 2);
-        String command = words[0];
-        String argument = words.length > 1 ? words[1] : "";
-
-        while (!"bye".equals(command)) {
-            printHorizontalLine();
-            // Every handler reports problems by throwing a ShannonException, so all error
-            // messages are printed here in one place instead of being scattered around.
-            try {
-                if ("list".equals(command)) {
-                    printTasks();
-                } else if ("mark".equals(command)) {
-                    markTask(argument, true);
-                } else if ("unmark".equals(command)) {
-                    markTask(argument, false);
-                } else if ("delete".equals(command)) {
-                    deleteTask(argument);
-                } else if ("todo".equals(command)) {
-                    addTodo(argument);
-                } else if ("deadline".equals(command)) {
-                    addDeadline(argument);
-                } else if ("event".equals(command)) {
-                    addEvent(argument);
-                } else {
-                    throw new UnknownCommandException(command);
-                }
-            } catch (ShannonException e) {
-                System.out.println(e.getMessage());
-            }
-            printHorizontalLine();
-
-            input = scanner.nextLine();
-            words = input.trim().split("\\s+", 2);
-            command = words[0];
-            argument = words.length > 1 ? words[1] : "";
-        }
-
-        printHorizontalLine();
-        System.out.println("Bye. Hope to see you again soon!");
-        printHorizontalLine();
+        new Shannon(DATA_FILE_PATH).run();
     }
 }
