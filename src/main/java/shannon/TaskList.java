@@ -1,6 +1,11 @@
+package shannon;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import shannon.exception.TaskNotFoundException;
+import shannon.task.Task;
 
 /**
  * The list of tasks, and the operations that change it.

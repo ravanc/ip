@@ -1,3 +1,5 @@
+package shannon.task;
+
 /**
  * A task with no date or time attached, e.g. {@code visit new theme park}.
  * Adds nothing to {@link Task} except the {@code [T]} type marker.

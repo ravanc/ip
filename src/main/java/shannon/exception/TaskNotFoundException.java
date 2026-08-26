@@ -1,3 +1,5 @@
+package shannon.exception;
+
 /**
  * Thrown when a task number is a valid number but does not refer to a task in the list,
  * e.g. {@code mark 99} when there are only 3 tasks.

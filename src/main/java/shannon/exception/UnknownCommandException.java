@@ -1,3 +1,5 @@
+package shannon.exception;
+
 /** Thrown when the first word of the input is not a command Shannon knows. */
 public class UnknownCommandException extends ShannonException {
 

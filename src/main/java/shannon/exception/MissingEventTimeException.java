@@ -1,3 +1,5 @@
+package shannon.exception;
+
 /** Thrown when an {@code event} command is missing its {@code /from} or {@code /to} part. */
 public class MissingEventTimeException extends ShannonException {
 

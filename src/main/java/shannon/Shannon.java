@@ -1,3 +1,12 @@
+package shannon;
+
+import shannon.exception.InvalidTaskNumberException;
+import shannon.exception.ShannonException;
+import shannon.exception.StorageException;
+import shannon.exception.TaskNotFoundException;
+import shannon.exception.UnknownCommandException;
+import shannon.task.Task;
+
 /**
  * The Shannon chatbot: a to-do list you talk to at the terminal.
  * <p>

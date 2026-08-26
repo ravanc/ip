@@ -1,3 +1,16 @@
+package shannon;
+
+import shannon.exception.EmptyDescriptionException;
+import shannon.exception.InvalidDateException;
+import shannon.exception.InvalidTaskNumberException;
+import shannon.exception.MissingDeadlineByException;
+import shannon.exception.MissingEventTimeException;
+import shannon.exception.ShannonException;
+import shannon.task.Deadline;
+import shannon.task.Event;
+import shannon.task.Task;
+import shannon.task.Todo;
+
 /**
  * One line the user typed, broken into the parts the rest of the program needs.
  * <p>

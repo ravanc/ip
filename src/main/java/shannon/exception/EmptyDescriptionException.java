@@ -1,3 +1,5 @@
+package shannon.exception;
+
 /**
  * Thrown when a task command is given without a description,
  * e.g. {@code todo} on its own, or {@code deadline /by Friday}.

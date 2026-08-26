@@ -1,3 +1,5 @@
+package shannon.exception;
+
 /** Thrown when a {@code deadline} command has no {@code /by} part, or an empty one. */
 public class MissingDeadlineByException extends ShannonException {
 

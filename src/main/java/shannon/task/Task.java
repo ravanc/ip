@@ -1,3 +1,5 @@
+package shannon.task;
+
 /**
  * A single task: its description, and whether it is done.
  * Fields are {@code protected} so that future subclasses can reuse them.

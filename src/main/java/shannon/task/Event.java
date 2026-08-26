@@ -1,3 +1,5 @@
+package shannon.task;
+
 /**
  * A task that starts at a specific date/time and ends at a specific date/time,
  * e.g. {@code team project meeting 2026-08-09 2pm to 4pm}.

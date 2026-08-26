@@ -1,3 +1,5 @@
+package shannon.exception;
+
 /**
  * Thrown when the task list cannot be written to, or read from, the save file.
  * <p>

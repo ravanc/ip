@@ -1,5 +1,10 @@
+package shannon;
+
 import java.util.List;
 import java.util.Scanner;
+
+import shannon.exception.ShannonException;
+import shannon.task.Task;
 
 /**
  * Everything the user sees and types.

@@ -1,3 +1,5 @@
+package shannon.exception;
+
 /** Thrown when a date was given in a form we cannot read, e.g. {@code deadline report /by tomorrow}. */
 public class InvalidDateException extends ShannonException {
 

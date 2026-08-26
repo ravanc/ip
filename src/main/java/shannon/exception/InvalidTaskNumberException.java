@@ -1,3 +1,5 @@
+package shannon.exception;
+
 /**
  * Thrown when a command that expects a task number is given something that is not a whole
  * number, e.g. {@code mark two}, or nothing at all.

@@ -1,3 +1,5 @@
+package shannon.exception;
+
 /**
  * Base class for every error Shannon reports back to the user.
  * <p>
