@@ -70,6 +70,31 @@ public class TaskList {
         return tasks.remove(indexOf(taskNumber));
     }
 
+    /**
+     * Returns every task whose description contains {@code keyword}, in list order.
+     * <p>
+     * The match ignores case and looks anywhere in the description, so {@code find book} also
+     * finds "Bookshop trip": someone searching their own list is recalling it roughly, not
+     * quoting it. Only the description is searched, not a deadline's date or an event's times.
+     * <p>
+     * The result is a plain {@link List} rather than another {@code TaskList}, because it is a
+     * snapshot to be shown and nothing more: deleting from it would not delete from the real
+     * list, so it should not offer the methods that look as though it would.
+     *
+     * @param keyword the text to look for; may be several words
+     * @return the matching tasks, unmodifiable and possibly empty
+     */
+    public List<Task> find(String keyword) {
+        String lowerKeyword = keyword.toLowerCase();
+        List<Task> matches = new ArrayList<>();
+        for (Task task : tasks) {
+            if (task.getDescription().toLowerCase().contains(lowerKeyword)) {
+                matches.add(task);
+            }
+        }
+        return Collections.unmodifiableList(matches);
+    }
+
     /** Returns how many tasks are in the list. */
     public int size() {
         return tasks.size();

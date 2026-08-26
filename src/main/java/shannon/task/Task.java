@@ -13,6 +13,11 @@ public abstract class Task {
         this.isDone = false;
     }
 
+    /** Returns the task's description, exactly as the user typed it. */
+    public String getDescription() {
+        return description;
+    }
+
     public String getStatusIcon() {
         return (isDone ? "X" : " ");
     }

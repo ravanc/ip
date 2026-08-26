@@ -111,6 +111,8 @@ public class Shannon {
     private void handleCommand(Parser parser) throws ShannonException {
         switch (parser.getCommand()) {
         case "list" -> ui.showTaskList(tasks.asList());
+        // find only reads the list, so unlike the commands below it does not save afterwards.
+        case "find" -> ui.showFoundTasks(tasks.find(parser.parseKeyword()));
         case "mark" -> markTask(parser, true);
         case "unmark" -> markTask(parser, false);
         case "delete" -> deleteTask(parser);
