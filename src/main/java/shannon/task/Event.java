@@ -9,6 +9,13 @@ public class Event extends Task {
     protected String from;
     protected String to;
 
+    /**
+     * Creates an event that is not done yet.
+     *
+     * @param description what the event is, as the user described it.
+     * @param from        when the event starts, as the user typed it.
+     * @param to          when the event ends, as the user typed it.
+     */
     public Event(String description, String from, String to) {
         super(description);
         this.from = from;

@@ -41,7 +41,7 @@ public class Parser {
     /**
      * Splits a line into its command word and the rest.
      *
-     * @param input one line exactly as the user typed it
+     * @param input one line exactly as the user typed it.
      */
     public Parser(String input) {
         // Limit of 2, so that a command typed on its own (e.g. "todo") still yields a command
@@ -62,8 +62,8 @@ public class Parser {
      * Only the reading is done here. Whether that number refers to a task that exists is
      * {@link TaskList}'s business, and is checked when the number is used.
      *
-     * @return the number the user typed, counting from 1
-     * @throws InvalidTaskNumberException if the argument is not a whole number
+     * @return the number the user typed, counting from 1.
+     * @throws InvalidTaskNumberException if the argument is not a whole number.
      */
     public int parseTaskNumber() throws ShannonException {
         try {
@@ -78,7 +78,7 @@ public class Parser {
     /**
      * Reads {@code todo <description>}.
      *
-     * @throws EmptyDescriptionException if no description was given
+     * @throws EmptyDescriptionException if no description was given.
      */
     public Task parseTodo() throws ShannonException {
         String description = argument.trim();
@@ -91,9 +91,9 @@ public class Parser {
     /**
      * Reads {@code deadline <description> /by <yyyy-mm-dd>}.
      *
-     * @throws MissingDeadlineByException if the {@code /by} part is missing or blank
-     * @throws EmptyDescriptionException  if no description was given before the {@code /by}
-     * @throws InvalidDateException       if the {@code /by} part is not a date in {@code yyyy-mm-dd} form
+     * @throws MissingDeadlineByException if the {@code /by} part is missing or blank.
+     * @throws EmptyDescriptionException  if no description was given before the {@code /by}.
+     * @throws InvalidDateException       if the {@code /by} part is not a date in {@code yyyy-mm-dd} form.
      */
     public Task parseDeadline() throws ShannonException {
         // Split on the marker itself rather than " /by ", so that "deadline /by Friday"
@@ -114,8 +114,8 @@ public class Parser {
     /**
      * Reads {@code event <description> /from <start> /to <end>}.
      *
-     * @throws MissingEventTimeException if the {@code /from} or {@code /to} part is missing or blank
-     * @throws EmptyDescriptionException if no description was given before the {@code /from}
+     * @throws MissingEventTimeException if the {@code /from} or {@code /to} part is missing or blank.
+     * @throws EmptyDescriptionException if no description was given before the {@code /from}.
      */
     public Task parseEvent() throws ShannonException {
         // Split on the markers themselves (see parseDeadline) so a missing description is

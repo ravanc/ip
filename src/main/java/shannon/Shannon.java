@@ -43,7 +43,7 @@ public class Shannon {
      * their save file. Reading the file is therefore the first thing {@link #run()} does, and
      * the empty list built here is what the program falls back on if that reading fails.
      *
-     * @param filePath the save file to use, e.g. {@code ./data/duke.txt}
+     * @param filePath the save file to use, e.g. {@code ./data/duke.txt}.
      */
     public Shannon(String filePath) {
         ui = new Ui();
@@ -104,20 +104,20 @@ public class Shannon {
      * the one thing it does. Reading the text apart has already happened, in {@link Parser}, so
      * nothing here touches a string beyond comparing the command word.
      *
-     * @param parser the line the user typed, already split up
-     * @throws UnknownCommandException if the command word is not one we know
-     * @throws ShannonException        if the command was understood but could not be carried out
+     * @param parser the line the user typed, already split up.
+     * @throws UnknownCommandException if the command word is not one we know.
+     * @throws ShannonException        if the command was understood but could not be carried out.
      */
     private void handleCommand(Parser parser) throws ShannonException {
         switch (parser.getCommand()) {
-        case "list" -> ui.showTaskList(tasks.asList());
-        case "mark" -> markTask(parser, true);
-        case "unmark" -> markTask(parser, false);
-        case "delete" -> deleteTask(parser);
-        case "todo" -> addTask(parser.parseTodo());
-        case "deadline" -> addTask(parser.parseDeadline());
-        case "event" -> addTask(parser.parseEvent());
-        default -> throw new UnknownCommandException(parser.getCommand());
+            case "list" -> ui.showTaskList(tasks.asList());
+            case "mark" -> markTask(parser, true);
+            case "unmark" -> markTask(parser, false);
+            case "delete" -> deleteTask(parser);
+            case "todo" -> addTask(parser.parseTodo());
+            case "deadline" -> addTask(parser.parseDeadline());
+            case "event" -> addTask(parser.parseEvent());
+            default -> throw new UnknownCommandException(parser.getCommand());
         }
     }
 
@@ -126,7 +126,7 @@ public class Shannon {
      * Every {@code todo}/{@code deadline}/{@code event} command funnels through here so the
      * confirmation message and the save live in exactly one place.
      *
-     * @throws StorageException if the task was added but could not be saved to disk
+     * @throws StorageException if the task was added but could not be saved to disk.
      */
     private void addTask(Task task) throws ShannonException {
         tasks.add(task);
@@ -139,9 +139,9 @@ public class Shannon {
     /**
      * Handles {@code delete <task number>}.
      *
-     * @throws InvalidTaskNumberException if the argument is not a whole number
-     * @throws TaskNotFoundException      if the number does not match any task in the list
-     * @throws StorageException           if the shortened list could not be saved to disk
+     * @throws InvalidTaskNumberException if the argument is not a whole number.
+     * @throws TaskNotFoundException      if the number does not match any task in the list.
+     * @throws StorageException           if the shortened list could not be saved to disk.
      */
     private void deleteTask(Parser parser) throws ShannonException {
         // deleteTask returns the task it removed, so the confirmation can still show what went.
@@ -153,10 +153,11 @@ public class Shannon {
     /**
      * Handles both {@code mark} and {@code unmark}, which differ only in the flag they set.
      *
-     * @param isDone {@code true} for {@code mark}, {@code false} for {@code unmark}
-     * @throws InvalidTaskNumberException if the argument is not a whole number
-     * @throws TaskNotFoundException      if the number does not match any task in the list
-     * @throws StorageException           if the changed list could not be saved to disk
+     * @param parser the line the user typed, already split up.
+     * @param isDone {@code true} for {@code mark}, {@code false} for {@code unmark}.
+     * @throws InvalidTaskNumberException if the argument is not a whole number.
+     * @throws TaskNotFoundException      if the number does not match any task in the list.
+     * @throws StorageException           if the changed list could not be saved to disk.
      */
     private void markTask(Parser parser, boolean isDone) throws ShannonException {
         Task task = tasks.getTask(parser.parseTaskNumber());
@@ -169,6 +170,11 @@ public class Shannon {
         storage.save(tasks.asList());
     }
 
+    /**
+     * Starts the chatbot with the default save file.
+     *
+     * @param args command line arguments, which this chatbot does not use.
+     */
     public static void main(String[] args) {
         new Shannon(DATA_FILE_PATH).run();
     }

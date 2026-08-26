@@ -6,7 +6,9 @@ public class UnknownCommandException extends ShannonException {
     private static final String COMMAND_LIST = "Try: todo, deadline, event, list, mark, unmark or bye.";
 
     /**
-     * @param command the unrecognised command word, or an empty string if the user entered a blank line
+     * Creates the exception, whose message lists the commands Shannon does understand.
+     *
+     * @param command the unrecognized command word, or an empty string if the user entered a blank line.
      */
     public UnknownCommandException(String command) {
         super(command.isEmpty()

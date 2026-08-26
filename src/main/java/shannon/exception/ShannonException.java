@@ -12,6 +12,11 @@ package shannon.exception;
  */
 public class ShannonException extends Exception {
 
+    /**
+     * Creates an exception carrying the exact wording to show the user.
+     *
+     * @param message the explanation the user will read.
+     */
     public ShannonException(String message) {
         super(message);
     }

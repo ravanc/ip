@@ -8,19 +8,27 @@ public abstract class Task {
     protected String description;
     protected boolean isDone;
 
+    /**
+     * Creates a task that is not done yet.
+     *
+     * @param description what the task is, as the user described it.
+     */
     public Task(String description) {
         this.description = description;
         this.isDone = false;
     }
 
+    /** Returns {@code "X"} if this task is done, or a single space if it is not. */
     public String getStatusIcon() {
-        return (isDone ? "X" : " ");
+        return isDone ? "X" : " ";
     }
 
+    /** Marks this task as done. */
     public void markDone() {
         this.isDone = true;
     }
 
+    /** Marks this task as not done yet. */
     public void unmarkDone() {
         this.isDone = false;
     }
@@ -41,8 +49,8 @@ public abstract class Task {
      * Builds the part of the save line that every task shares.
      * The type and the done flag are values we control, so only the description needs escaping.
      *
-     * @param type the single letter identifying the subclass in the save file
-     * @return e.g. {@code T | 1 | read book}
+     * @param type the single letter identifying the subclass in the save file.
+     * @return e.g. {@code T | 1 | read book}.
      */
     protected String encode(String type) {
         return type + " | " + (isDone ? "1" : "0") + " | " + escape(description);
@@ -63,18 +71,18 @@ public abstract class Task {
      * correct only if backslash happens to be replaced first, and quietly corrupts the field
      * if anyone reorders the calls. A single pass cannot be broken that way.
      *
-     * @param field the raw text of one field
-     * @return the same text, safe to write as one part of one line
+     * @param field the raw text of one field.
+     * @return the same text, safe to write as one part of one line.
      */
     protected static String escape(String field) {
         StringBuilder escaped = new StringBuilder();
         for (char character : field.toCharArray()) {
             switch (character) {
-            case '\\' -> escaped.append("\\\\");
-            case '|' -> escaped.append("\\|");
-            case '\n' -> escaped.append("\\n");
-            case '\r' -> escaped.append("\\r");
-            default -> escaped.append(character);
+                case '\\' -> escaped.append("\\\\");
+                case '|' -> escaped.append("\\|");
+                case '\n' -> escaped.append("\\n");
+                case '\r' -> escaped.append("\\r");
+                default -> escaped.append(character);
             }
         }
         return escaped.toString();
