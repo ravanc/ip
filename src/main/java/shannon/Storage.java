@@ -16,10 +16,6 @@ import shannon.task.Todo;
 /**
  * Reads and writes the task list as a text file, so it survives between runs.
  * <p>
- * The whole list is rewritten on every change. That is the simplest thing that works for a list
- * this small; a bigger program would append only what changed, but that costs far more
- * complexity than a to-do list is worth.
- * <p>
  * One task per line, fields separated by {@code " | "}:
  * <pre>
  * T | 1 | read book
@@ -31,14 +27,19 @@ import shannon.task.Todo;
  * cannot be mistaken for a field separator, and {@link #splitFields(String)} undoes that on the
  * way back in.
  */
+// The whole list is rewritten on every change, which is the simplest thing that works for a list
+// this small; appending only what changed costs far more complexity than a to-do list is worth.
 public class Storage {
 
+    /** The save file this Storage reads and writes. */
     private final Path file;
 
     /** How many lines the last {@link #load()} could not understand and skipped. */
     private int skippedLineCount;
 
     /**
+     * Creates a Storage pointing at one save file, without reading or creating it.
+     *
      * @param filePath path to the save file, e.g. {@code ./data/duke.txt}
      */
     public Storage(String filePath) {
@@ -103,12 +104,20 @@ public class Storage {
         return tasks;
     }
 
-    /** Returns the save file this Storage reads and writes, for messages that name it. */
+    /**
+     * Returns the save file this Storage reads and writes, for messages that name it.
+     *
+     * @return the path as it was given to the constructor
+     */
     public String getFilePath() {
         return file.toString();
     }
 
-    /** Returns how many lines the last {@link #load()} skipped because it could not read them. */
+    /**
+     * Returns how many lines the last {@link #load()} skipped because it could not read them.
+     *
+     * @return the number of skipped lines, or 0 if nothing has been loaded yet
+     */
     public int getSkippedLineCount() {
         return skippedLineCount;
     }
@@ -116,16 +125,14 @@ public class Storage {
     /**
      * Splits one saved line into its fields, undoing the escaping done by
      * {@link Task#escape(String)}.
-     * <p>
-     * This is the exact inverse: scan left to right, a backslash consumes the character after it
-     * ({@code n} and {@code r} becoming line breaks, anything else standing for itself), and only
-     * an unescaped {@code |} ends a field. Splitting with {@link String#split} instead would cut
-     * the line at an escaped pipe inside a description.
      *
      * @param line one line of the save file
      * @return the fields, trimmed of the spaces around each separator
      */
     private static List<String> splitFields(String line) {
+        // The exact inverse of escape(): scan left to right, a backslash consumes the character
+        // after it, and only an unescaped | ends a field. String.split() would instead cut the
+        // line at an escaped pipe inside a description.
         List<String> fields = new ArrayList<>();
         StringBuilder current = new StringBuilder();
         for (int i = 0; i < line.length(); i++) {
@@ -153,13 +160,11 @@ public class Storage {
      * <p>
      * Every field is checked rather than trusted: the file is an ordinary text file that the
      * user can edit by hand, so a wrong task type, a done flag that is not {@code 0} or
-     * {@code 1}, a blank description, or the wrong number of fields for the task type are all
-     * things that can genuinely appear.
+     * {@code 1}, a blank description, or the wrong number of fields are all things that can
+     * genuinely appear.
      *
      * @param fields the fields of one line, already unescaped
-     * @return the task, or {@code null} if the line could not be understood. ({@code Optional}
-     *         would express "no task" more explicitly, but a null checked at the single call
-     *         site is simpler here.)
+     * @return the task, or {@code null} if the line could not be understood
      */
     private static Task parseTask(List<String> fields) {
         if (fields.size() < 3) {
@@ -189,15 +194,14 @@ public class Storage {
     /**
      * Rebuilds a {@link Deadline} from a saved line, reusing {@link Deadline#parseBy(String)} so
      * that the file accepts exactly the dates the user is allowed to type.
-     * <p>
-     * A separate method rather than another branch of the {@code switch} above, because a
-     * {@code try}/{@code catch} does not fit inside a switch expression's arrow.
      *
      * @param description the task description, already unescaped
      * @param by          the saved date, expected in {@code yyyy-mm-dd} form
      * @return the task, or {@code null} if the date could not be read, which makes the caller
      *         skip the line like any other damaged one
      */
+    // A separate method rather than another branch of the switch in parseTask(), because a
+    // try/catch does not fit inside a switch expression's arrow.
     private static Task parseDeadline(String description, String by) {
         try {
             return new Deadline(description, Deadline.parseBy(by));

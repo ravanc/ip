@@ -10,21 +10,18 @@ import shannon.task.Task;
 /**
  * The list of tasks, and the operations that change it.
  * <p>
- * The point of wrapping the {@link ArrayList} rather than passing one around is that the list and
- * the rule protecting it now live together. Every command that names a task ({@code mark},
- * {@code unmark}, {@code delete}) has to check that the number refers to a real task; when the
- * list was a bare field, that check sat in a separate method that any new command could forget to
- * call. Here it cannot be skipped, because the only way in is through a method that performs it.
+ * Wrapping the {@link ArrayList} keeps the list and the rule protecting it together: every command
+ * that names a task ({@code mark}, {@code unmark}, {@code delete}) must check that the number
+ * refers to a real task, and here that check cannot be skipped, because the only way in is through
+ * a method that performs it.
  * <p>
- * <b>Task numbers, not indices.</b> {@link #getTask(int)} and {@link #deleteTask(int)} take the
- * number the user typed, counting from 1, not a position counting from 0. That is why they are
- * named {@code getTask}/{@code deleteTask} rather than {@code get}/{@code remove}: a reader who
- * sees {@code list.get(0)} rightly expects the first element, and calling the methods after the
- * collection ones would invite exactly that mistake. Converting from the user's counting to the
- * list's happens here, once, instead of in each caller.
+ * {@link #getTask(int)} and {@link #deleteTask(int)} take the number the user typed, counting from
+ * 1, not a position counting from 0 &mdash; hence those names rather than {@code get}/{@code remove},
+ * which a reader would rightly expect to be zero-based.
  */
 public class TaskList {
 
+    /** The tasks, in the order they were added. */
     private final ArrayList<Task> tasks;
 
     /** Starts an empty list, for a first run or after a save file could not be read. */
@@ -42,7 +39,11 @@ public class TaskList {
         this.tasks = new ArrayList<>(tasks);
     }
 
-    /** Adds a task to the end of the list. */
+    /**
+     * Adds a task to the end of the list.
+     *
+     * @param task the task to add
+     */
     public void add(Task task) {
         tasks.add(task);
     }
@@ -51,6 +52,7 @@ public class TaskList {
      * Returns the task the user asked for, leaving it in the list.
      *
      * @param taskNumber the number the user typed, counting from 1
+     * @return the task with that number
      * @throws TaskNotFoundException if no task has that number
      */
     public Task getTask(int taskNumber) throws TaskNotFoundException {
@@ -62,6 +64,7 @@ public class TaskList {
      * deleted.
      *
      * @param taskNumber the number the user typed, counting from 1
+     * @return the task that was removed
      * @throws TaskNotFoundException if no task has that number
      */
     public Task deleteTask(int taskNumber) throws TaskNotFoundException {
@@ -70,7 +73,11 @@ public class TaskList {
         return tasks.remove(indexOf(taskNumber));
     }
 
-    /** Returns how many tasks are in the list. */
+    /**
+     * Returns how many tasks are in the list.
+     *
+     * @return the number of tasks
+     */
     public int size() {
         return tasks.size();
     }
@@ -78,9 +85,9 @@ public class TaskList {
     /**
      * Returns the tasks in the order they were added, for code that only reads them: the
      * {@link Ui} to print, and the {@link Storage} to save.
-     * <p>
-     * The returned list is unmodifiable, so that handing the tasks out cannot become a second
-     * way of changing them that bypasses the checks above.
+     *
+     * @return an unmodifiable view, so that handing the tasks out cannot become a second way of
+     *         changing them that bypasses the checks above
      */
     public List<Task> asList() {
         return Collections.unmodifiableList(tasks);

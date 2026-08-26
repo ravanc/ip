@@ -6,6 +6,11 @@ package shannon.task;
  */
 public class Todo extends Task {
 
+    /**
+     * Creates a to-do that is not yet done.
+     *
+     * @param description what the user wants to do
+     */
     public Todo(String description) {
         super(description);
     }

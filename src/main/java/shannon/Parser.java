@@ -15,21 +15,15 @@ import shannon.task.Todo;
  * One line the user typed, broken into the parts the rest of the program needs.
  * <p>
  * A {@code Parser} is made from a single line of input and can then answer questions about it:
- * which command it is, and what the text after the command word means for that particular
- * command. Everything that pulls a line of text apart lives here, so the rest of the program
- * works with task numbers and {@link Task} objects rather than with strings.
- * <p>
- * <b>Why an object rather than static helper methods.</b> The obvious alternative is a class of
- * static methods taking the text as an argument. That works, but nearly every one of them needs
- * both halves of the line: the argument to read, and the command word so an error message can
- * show a matching example ({@code Try: delete 2} after a bad {@code delete}). Passing that pair
- * to every call, and keeping the two halves in step, is exactly the bookkeeping an object exists
- * to remove. Splitting once in the constructor also means a line cannot be split two different
- * ways in two different places.
- * <p>
- * A parse method reports a line it cannot make sense of by throwing a {@link ShannonException},
- * so the command loop keeps handling every error in one {@code catch}.
+ * which command it is, and what the text after the command word means for that command. All the
+ * string-splitting lives here, so the rest of the program works with task numbers and
+ * {@link Task} objects instead. A line that cannot be made sense of is reported by throwing a
+ * {@link ShannonException}, so the command loop handles every error in one {@code catch}.
  */
+// An object rather than a class of static helpers: nearly every parse method needs both halves of
+// the line, the argument to read and the command word so an error can show a matching example
+// ("Try: delete 2"). Splitting once in the constructor keeps the two in step, and means a line
+// cannot be split two different ways in two different places.
 public class Parser {
 
     /** The first word, e.g. {@code deadline}. Empty if the user typed nothing. */
@@ -51,7 +45,11 @@ public class Parser {
         this.argument = words.length > 1 ? words[1] : "";
     }
 
-    /** Returns the command word, which the caller compares against the commands it knows. */
+    /**
+     * Returns the command word, which the caller compares against the commands it knows.
+     *
+     * @return the first word of the line, or an empty string if the line was blank
+     */
     public String getCommand() {
         return command;
     }
@@ -78,6 +76,7 @@ public class Parser {
     /**
      * Reads {@code todo <description>}.
      *
+     * @return the task it describes
      * @throws EmptyDescriptionException if no description was given
      */
     public Task parseTodo() throws ShannonException {
@@ -91,6 +90,7 @@ public class Parser {
     /**
      * Reads {@code deadline <description> /by <yyyy-mm-dd>}.
      *
+     * @return the task it describes
      * @throws MissingDeadlineByException if the {@code /by} part is missing or blank
      * @throws EmptyDescriptionException  if no description was given before the {@code /by}
      * @throws InvalidDateException       if the {@code /by} part is not a date in {@code yyyy-mm-dd} form
@@ -114,6 +114,7 @@ public class Parser {
     /**
      * Reads {@code event <description> /from <start> /to <end>}.
      *
+     * @return the task it describes
      * @throws MissingEventTimeException if the {@code /from} or {@code /to} part is missing or blank
      * @throws EmptyDescriptionException if no description was given before the {@code /from}
      */

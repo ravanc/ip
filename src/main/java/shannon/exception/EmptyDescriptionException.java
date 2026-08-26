@@ -7,6 +7,8 @@ package shannon.exception;
 public class EmptyDescriptionException extends ShannonException {
 
     /**
+     * Builds the message for a command that was missing its description.
+     *
      * @param command the command word that was missing a description
      * @param example a full, valid example of that command to show the user
      */

@@ -3,9 +3,12 @@ package shannon.exception;
 /** Thrown when the first word of the input is not a command Shannon knows. */
 public class UnknownCommandException extends ShannonException {
 
+    /** The commands that do work, appended to every message so the user has somewhere to go. */
     private static final String COMMAND_LIST = "Try: todo, deadline, event, list, mark, unmark or bye.";
 
     /**
+     * Builds the message for an unrecognised command, listing the commands that do work.
+     *
      * @param command the unrecognised command word, or an empty string if the user entered a blank line
      */
     public UnknownCommandException(String command) {

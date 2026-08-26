@@ -4,6 +4,8 @@ package shannon.exception;
 public class InvalidDateException extends ShannonException {
 
     /**
+     * Builds the message for a date that could not be understood.
+     *
      * @param text the date as the user typed it, echoed back so it is clear which part was wrong
      */
     public InvalidDateException(String text) {

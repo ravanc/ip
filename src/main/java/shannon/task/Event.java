@@ -6,9 +6,19 @@ package shannon.task;
  */
 public class Event extends Task {
 
+    /** When the event starts, kept as the text the user typed. */
     protected String from;
+
+    /** When the event ends, kept as the text the user typed. */
     protected String to;
 
+    /**
+     * Creates an event that is not yet done.
+     *
+     * @param description what the event is
+     * @param from        when it starts, as typed
+     * @param to          when it ends, as typed
+     */
     public Event(String description, String from, String to) {
         super(description);
         this.from = from;

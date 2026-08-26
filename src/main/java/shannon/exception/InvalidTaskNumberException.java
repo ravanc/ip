@@ -7,6 +7,8 @@ package shannon.exception;
 public class InvalidTaskNumberException extends ShannonException {
 
     /**
+     * Builds the message for a task number that could not be read.
+     *
      * @param command  the command word, so the example matches what the user typed
      * @param argument the text that could not be read as a task number
      */

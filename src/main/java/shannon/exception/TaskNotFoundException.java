@@ -7,6 +7,8 @@ package shannon.exception;
 public class TaskNotFoundException extends ShannonException {
 
     /**
+     * Builds the message for a task number that is out of range.
+     *
      * @param taskNumber the one-indexed number the user asked for
      * @param taskCount  how many tasks are actually in the list
      */

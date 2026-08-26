@@ -10,12 +10,12 @@ import shannon.exception.InvalidDateException;
 /**
  * A task that must be done before a specific date, e.g. {@code submit report by 2026-08-09}.
  * <p>
- * The date is kept as a {@link LocalDate} rather than as the text the user typed, so that the
- * program understands it as a date: it can be printed in a friendlier format than it was typed
- * in, and later features (sorting, "what is due this week?") become possible without re-reading
- * the text. {@code LocalDate} is used rather than {@code LocalDateTime} because the commands
- * accept a date only; storing a time we never ask for would be inventing information.
+ * The date is kept as a {@link LocalDate} rather than as the text the user typed, so it can be
+ * displayed in a friendlier format than it was entered in, and so later features such as sorting
+ * become possible without re-reading the text.
  */
+// LocalDate, not LocalDateTime: the commands accept a date only, and storing a time we never ask
+// for would be inventing information.
 public class Deadline extends Task {
 
     /** The format the user types and the format written to the save file, e.g. {@code 2026-08-09}. */
@@ -29,8 +29,15 @@ public class Deadline extends Task {
     private static final DateTimeFormatter DISPLAY_FORMAT =
             DateTimeFormatter.ofPattern("MMM dd yyyy", Locale.ENGLISH);
 
+    /** The date the task is due by. */
     protected LocalDate by;
 
+    /**
+     * Creates a deadline that is not yet done.
+     *
+     * @param description what needs to be done
+     * @param by          the date it is due by, already parsed by {@link #parseBy(String)}
+     */
     public Deadline(String description, LocalDate by) {
         super(description);
         this.by = by;

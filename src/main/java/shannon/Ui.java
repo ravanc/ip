@@ -10,9 +10,9 @@ import shannon.task.Task;
  * Everything the user sees and types.
  * <p>
  * All reading from {@code System.in} and writing to {@code System.out} happens here, so the rest
- * of the program never has to know that this chatbot talks through a terminal at all. The payoff
- * is that the wording of a message can be changed, or the whole interface swapped for a window,
- * without touching the code that actually manipulates tasks.
+ * of the program never has to know that this chatbot talks through a terminal at all: the wording
+ * of a message can be changed, or the whole interface swapped for a window, without touching the
+ * code that manipulates tasks.
  * <p>
  * The methods are named {@code show...} rather than {@code print...} on purpose: they promise to
  * make something visible to the user, not that they do it by printing.
@@ -25,7 +25,11 @@ public class Ui {
     /** Reads the user's typing. Kept as a field so the one scanner lasts the whole session. */
     private final Scanner scanner = new Scanner(System.in);
 
-    /** Reads the next line the user types. */
+    /**
+     * Reads the next line the user types.
+     *
+     * @return the line, exactly as typed
+     */
     public String readCommand() {
         return scanner.nextLine();
     }
@@ -63,14 +67,24 @@ public class Ui {
         System.out.println(message);
     }
 
-    /** Confirms that a task was added, and says how many tasks there are now. */
+    /**
+     * Confirms that a task was added, and says how many tasks there are now.
+     *
+     * @param task      the task that was just added
+     * @param taskCount how many tasks are in the list now
+     */
     public void showTaskAdded(Task task, int taskCount) {
         System.out.println("Got it. I've added this task:");
         System.out.println("  " + task);
         showTaskCount(taskCount);
     }
 
-    /** Confirms that a task was deleted, and says how many tasks are left. */
+    /**
+     * Confirms that a task was deleted, and says how many tasks are left.
+     *
+     * @param task      the task that was just removed
+     * @param taskCount how many tasks are left in the list
+     */
     public void showTaskDeleted(Task task, int taskCount) {
         System.out.println("Noted. I've removed this task:");
         System.out.println("  " + task);
@@ -80,6 +94,7 @@ public class Ui {
     /**
      * Confirms that a task's done flag was changed.
      *
+     * @param task   the task that was just changed
      * @param isDone {@code true} if it was just marked done, {@code false} if it was unmarked
      */
     public void showTaskMarked(Task task, boolean isDone) {
@@ -89,7 +104,11 @@ public class Ui {
         System.out.println("  " + task);
     }
 
-    /** Prints the tasks in the order they were added, numbered from 1. */
+    /**
+     * Prints the tasks in the order they were added, numbered from 1.
+     *
+     * @param tasks the tasks to show; a message is printed instead if there are none
+     */
     public void showTaskList(List<Task> tasks) {
         if (tasks.isEmpty()) {
             System.out.println("Your list is empty!");
@@ -103,6 +122,8 @@ public class Ui {
     /**
      * Reports how many tasks were restored from the save file. Says nothing when there were
      * none, so a first run is not cluttered with "I've loaded 0 tasks".
+     *
+     * @param taskCount how many tasks were loaded
      */
     public void showLoaded(int taskCount) {
         if (taskCount > 0) {
@@ -113,7 +134,7 @@ public class Ui {
 
     /**
      * Warns that part of the save file could not be read, so the user is not left wondering
-     * where those tasks went.
+     * where those tasks went. Says nothing when no lines were skipped.
      *
      * @param skippedCount how many lines were skipped
      * @param filePath     the save file, named so the user can go and repair it
@@ -126,7 +147,11 @@ public class Ui {
         }
     }
 
-    /** Reports how many tasks are in the list, after one has been added or deleted. */
+    /**
+     * Reports how many tasks are in the list, after one has been added or deleted.
+     *
+     * @param taskCount how many tasks are in the list now
+     */
     private void showTaskCount(int taskCount) {
         System.out.println("Now you have " + taskCount + plural(taskCount, " task", " tasks")
                 + " in the list.");
@@ -135,6 +160,11 @@ public class Ui {
     /**
      * Picks the singular or plural wording for a count.
      * A tiny helper, but it keeps the {@code count == 1 ? ... : ...} test out of five messages.
+     *
+     * @param count      the number the wording has to agree with
+     * @param singular   the wording to use when {@code count} is 1
+     * @param pluralForm the wording to use otherwise
+     * @return whichever of the two fits the count
      */
     private static String plural(int count, String singular, String pluralForm) {
         return count == 1 ? singular : pluralForm;
