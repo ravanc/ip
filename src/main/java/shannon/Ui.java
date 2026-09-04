@@ -7,15 +7,18 @@ import shannon.exception.ShannonException;
 import shannon.task.Task;
 
 /**
- * Everything the user sees and types.
+ * The words the chatbot says, and the terminal it says them in.
  * <p>
- * All reading from {@code System.in} and writing to {@code System.out} happens here, so the rest
- * of the program never has to know that this chatbot talks through a terminal at all: the wording
- * of a message can be changed, or the whole interface swapped for a window, without touching the
- * code that manipulates tasks.
- * <p>
- * The methods are named {@code show...} rather than {@code print...} on purpose: they promise to
- * make something visible to the user, not that they do it by printing.
+ * The class has two jobs, kept deliberately apart:
+ * <ul>
+ *   <li>the {@code get...Message} methods <em>build</em> a reply and hand it back as a string;
+ *       they touch neither the screen nor the keyboard.</li>
+ *   <li>{@link #readCommand()}, {@link #showLine()}, {@link #showLogo()} and
+ *       {@link #showMessage(String)} are the only places that talk to the terminal.</li>
+ * </ul>
+ * That split is what lets the same chatbot run in two skins. The terminal version reads a line
+ * and prints the message it gets back; the JavaFX window asks for exactly the same message and
+ * puts it in a dialog bubble instead. Neither the tasks nor the commands know the difference.
  */
 public class Ui {
 
@@ -27,163 +30,205 @@ public class Ui {
     private final Scanner scanner = new Scanner(System.in);
 
     /**
-     * Reads the next line the user types.
+     * Reads the next line the user types at the terminal.
      *
-     * @return the line, exactly as typed
+     * @return the line, exactly as typed.
      */
     public String readCommand() {
         return scanner.nextLine();
     }
 
-    /** Draws the separator line. */
+    /** Prints the separator line to the terminal. */
     public void showLine() {
         System.out.println(HORIZONTAL_LINE);
     }
 
-    /** Prints the logo and greeting shown once at start-up. */
-    public void showWelcome() {
-        String banner = "   oo_    \\\\  //       \\\\\\  ///\\\\\\  ///   .-.   \\\\\\  ///\n"
+    /**
+     * Prints a message to the terminal.
+     * Blank messages are skipped, so a reply that has nothing to say leaves no empty line.
+     *
+     * @param message the text to show, normally one built by a {@code get...Message} method.
+     */
+    public void showMessage(String message) {
+        if (!message.isEmpty()) {
+            System.out.println(message);
+        }
+    }
+
+    /**
+     * Prints the ASCII-art logo to the terminal.
+     * <p>
+     * Terminal-only, and so a {@code show...} method rather than a {@code get...Message} one:
+     * the art relies on every character being the same width and on lines nearly sixty
+     * characters long, neither of which a narrow chat bubble can promise.
+     */
+    public void showLogo() {
+        String logo = "   oo_    \\\\  //       \\\\\\  ///\\\\\\  ///   .-.   \\\\\\  ///\n"
                 + "  /  _)-< (o)(o)   /)  ((O)(O))((O)(O)) c(O_O)c ((O)(O))\n"
                 + "  \\__ `.  ||  || (o)(O) | \\ ||  | \\ || ,'.---.`, | \\ ||\n"
                 + "     `. | |(__)|  //\\\\  ||\\\\||  ||\\\\||/ /|_|_|\\ \\||\\\\||\n"
                 + "     _| | /.--.\\ |(__)| || \\ |  || \\ || \\_____/ ||| \\ |\n"
                 + "  ,-'   |-'    `-/,-. | ||  ||  ||  ||'. `---' .`||  ||\n"
-                + " (_..--'        -'   ''(_/  \\_)(_/  \\_) `-...-' (_/  \\_)\n";
-        System.out.println(banner);
-        System.out.println("Hello! I'm Shannon!");
-        System.out.println("What can I do for you?");
-    }
-
-    /** Prints the parting message. */
-    public void showGoodbye() {
-        System.out.println("Bye. Hope to see you again soon!");
+                + " (_..--'        -'   ''(_/  \\_)(_/  \\_) `-...-' (_/  \\_)";
+        System.out.println(logo);
     }
 
     /**
-     * Prints the explanation of something that went wrong.
+     * Returns the greeting shown once at start-up.
+     *
+     * @return the welcome text.
+     */
+    public String getWelcomeMessage() {
+        return "Hello! I'm Shannon!\nWhat can I do for you?";
+    }
+
+    /**
+     * Returns the parting message.
+     *
+     * @return the goodbye text.
+     */
+    public String getGoodbyeMessage() {
+        return "Bye. Hope to see you again soon!";
+    }
+
+    /**
+     * Returns the explanation of something that went wrong.
+     * A method of its own, even though it only passes the text through, so that the wording of
+     * every error can later be decorated in one place.
      *
      * @param message the text to show, normally a {@link ShannonException}'s message.
+     * @return the error text.
      */
-    public void showError(String message) {
-        System.out.println(message);
+    public String getErrorMessage(String message) {
+        return message;
     }
 
     /**
-     * Confirms that a task was added, and says how many tasks there are now.
+     * Returns the confirmation that a task was added, including how many tasks there are now.
      *
-     * @param task      the task that was just added
-     * @param taskCount how many tasks are in the list now
+     * @param task      the task that was just added.
+     * @param taskCount how many tasks are in the list now.
+     * @return the confirmation text.
      */
-    public void showTaskAdded(Task task, int taskCount) {
-        System.out.println("Got it. I've added this task:");
-        System.out.println("  " + task);
-        showTaskCount(taskCount);
+    public String getTaskAddedMessage(Task task, int taskCount) {
+        return "Got it. I've added this task:\n  " + task + "\n" + getTaskCountMessage(taskCount);
     }
 
     /**
-     * Confirms that a task was deleted, and says how many tasks are left.
+     * Returns the confirmation that a task was deleted, including how many tasks are left.
      *
-     * @param task      the task that was just removed
-     * @param taskCount how many tasks are left in the list
+     * @param task      the task that was just removed.
+     * @param taskCount how many tasks are left in the list.
+     * @return the confirmation text.
      */
-    public void showTaskDeleted(Task task, int taskCount) {
-        System.out.println("Noted. I've removed this task:");
-        System.out.println("  " + task);
-        showTaskCount(taskCount);
+    public String getTaskDeletedMessage(Task task, int taskCount) {
+        return "Noted. I've removed this task:\n  " + task + "\n" + getTaskCountMessage(taskCount);
     }
 
     /**
-     * Confirms that a task's done flag was changed.
+     * Returns the confirmation that a task's done flag was changed.
      *
-     * @param task   the task that was just changed
-     * @param isDone {@code true} if it was just marked done, {@code false} if it was unmarked
+     * @param task   the task that was just changed.
+     * @param isDone {@code true} if it was just marked done, {@code false} if it was unmarked.
+     * @return the confirmation text.
      */
-    public void showTaskMarked(Task task, boolean isDone) {
-        System.out.println(isDone
+    public String getTaskMarkedMessage(Task task, boolean isDone) {
+        String heading = isDone
                 ? "Nice! I've marked this task as done:"
-                : "OK, I've marked this task as not done yet:");
-        System.out.println("  " + task);
+                : "OK, I've marked this task as not done yet:";
+        return heading + "\n  " + task;
     }
 
     /**
-     * Prints the tasks in the order they were added, numbered from 1.
+     * Returns the tasks in the order they were added, numbered from 1.
      *
-     * @param tasks the tasks to show; a message is printed instead if there are none
+     * @param tasks the tasks to list; a message is returned instead if there are none.
+     * @return the numbered list, or a note that the list is empty.
      */
-    public void showTaskList(List<Task> tasks) {
+    public String getTaskListMessage(List<Task> tasks) {
         if (tasks.isEmpty()) {
-            System.out.println("Your list is empty!");
-            return;
+            return "Your list is empty!";
         }
+        StringBuilder list = new StringBuilder();
         for (int i = 0; i < tasks.size(); i++) {
-            System.out.println((i + 1) + ". " + tasks.get(i));
+            if (i > 0) {
+                list.append("\n");
+            }
+            list.append(i + 1).append(". ").append(tasks.get(i));
         }
+        return list.toString();
     }
 
     /**
-     * Prints the tasks that matched a {@code find}, or says that none did.
+     * Returns the tasks that matched a {@code find}, or a note that none did.
      * <p>
      * The numbers shown here count the matches, not the positions in the whole list, so
      * {@code delete 2} after a find does not delete the second task shown. Reusing
-     * {@link #showTaskList} keeps one numbering style; only the empty case needs its own
+     * {@link #getTaskListMessage} keeps one numbering style; only the empty case needs its own
      * wording, since "Your list is empty!" would be untrue when the list has tasks that simply
      * did not match.
-     */
-    public void showFoundTasks(List<Task> tasks) {
-        if (tasks.isEmpty()) {
-            System.out.println("No matching tasks found!");
-            return;
-        }
-        System.out.println("Here are the matching tasks in your list:");
-        showTaskList(tasks);
-    }
-
-    /**
-     * Reports how many tasks were restored from the save file. Says nothing when there were
-     * none, so a first run is not cluttered with "I've loaded 0 tasks".
      *
-     * @param taskCount how many tasks were loaded
+     * @param tasks the tasks that matched the keyword.
+     * @return the numbered matches, or a note that there were none.
      */
-    public void showLoaded(int taskCount) {
-        if (taskCount > 0) {
-            System.out.println("I've loaded " + taskCount + pluralize(taskCount, " task", " tasks")
-                    + " from your last session.");
+    public String getFoundTasksMessage(List<Task> tasks) {
+        if (tasks.isEmpty()) {
+            return "No matching tasks found!";
         }
+        return "Here are the matching tasks in your list:\n" + getTaskListMessage(tasks);
     }
 
     /**
-     * Warns that part of the save file could not be read, so the user is not left wondering
-     * where those tasks went. Says nothing when no lines were skipped.
+     * Returns a report of how many tasks were restored from the save file, or an empty string
+     * when there were none, so a first run is not cluttered with "I've loaded 0 tasks".
+     *
+     * @param taskCount how many tasks were loaded.
+     * @return the report, or an empty string.
+     */
+    public String getLoadedMessage(int taskCount) {
+        if (taskCount == 0) {
+            return "";
+        }
+        return "I've loaded " + taskCount + pluralize(taskCount, " task", " tasks")
+                + " from your last session.";
+    }
+
+    /**
+     * Returns a warning that part of the save file could not be read, so the user is not left
+     * wondering where those tasks went, or an empty string when no lines were skipped.
      *
      * @param skippedCount how many lines were skipped.
      * @param filePath     the save file, named so the user can go and repair it.
+     * @return the warning, or an empty string.
      */
-    public void showSkippedLines(int skippedCount, String filePath) {
-        if (skippedCount > 0) {
-            System.out.println("I couldn't understand " + skippedCount
-                    + pluralize(skippedCount, " line", " lines") + " in " + filePath
-                    + ", so I've left " + pluralize(skippedCount, "it", "them") + " out.");
+    public String getSkippedLinesMessage(int skippedCount, String filePath) {
+        if (skippedCount == 0) {
+            return "";
         }
+        return "I couldn't understand " + skippedCount
+                + pluralize(skippedCount, " line", " lines") + " in " + filePath
+                + ", so I've left " + pluralize(skippedCount, "it", "them") + " out.";
     }
 
     /**
-     * Reports how many tasks are in the list, after one has been added or deleted.
+     * Returns how many tasks are in the list, for use after one has been added or deleted.
      *
-     * @param taskCount how many tasks are in the list now
+     * @param taskCount how many tasks are in the list now.
+     * @return the count, worded as a sentence.
      */
-    private void showTaskCount(int taskCount) {
-        System.out.println("Now you have " + taskCount + pluralize(taskCount, " task", " tasks")
-                + " in the list.");
+    private String getTaskCountMessage(int taskCount) {
+        return "Now you have " + taskCount + pluralize(taskCount, " task", " tasks")
+                + " in the list.";
     }
 
     /**
      * Picks the singular or plural wording for a count.
      * A tiny helper, but it keeps the {@code count == 1 ? ... : ...} test out of five messages.
      *
-     * @param count      the number the wording has to agree with
-     * @param singular   the wording to use when {@code count} is 1
-     * @param pluralForm the wording to use otherwise
-     * @return whichever of the two fits the count
+     * @param count      the number the wording has to agree with.
+     * @param singular   the wording to use when {@code count} is 1.
+     * @param pluralForm the wording to use otherwise.
+     * @return whichever of the two fits the count.
      */
     private static String pluralize(int count, String singular, String pluralForm) {
         return count == 1 ? singular : pluralForm;
