@@ -56,22 +56,36 @@ public class Parser {
     }
 
     /**
-     * Reads the task number typed after the command word.
+     * Reads the one or more task numbers typed after the command word.
      * <p>
-     * Only the reading is done here. Whether that number refers to a task that exists is
-     * {@link TaskList}'s business, and is checked when the number is used.
+     * Several numbers may be given, separated by spaces, so {@code delete 2 5} works as well as
+     * {@code delete 2}. The numbers are returned as an array rather than one at a time, which is
+     * what lets {@link TaskList} take them as a varargs parameter.
+     * <p>
+     * Only the reading is done here. Whether those numbers refer to tasks that exist is
+     * {@link TaskList}'s business, and is checked when they are used.
      *
-     * @return the number the user typed, counting from 1.
-     * @throws InvalidTaskNumberException if the argument is not a whole number.
+     * @return the numbers the user typed, in the order typed, each counting from 1.
+     * @throws InvalidTaskNumberException if no number was given, or one is not a whole number.
      */
-    public int parseTaskNumber() throws ShannonException {
-        try {
-            return Integer.parseInt(argument.trim());
-        } catch (NumberFormatException e) {
-            // Translate Java's low-level parsing error into one of our own, so the command
-            // loop only ever has to know about ShannonException.
-            throw new InvalidTaskNumberException(command, argument.trim());
+    public int[] parseTaskNumbers() throws ShannonException {
+        String trimmedArgument = argument.trim();
+        if (trimmedArgument.isEmpty()) {
+            throw new InvalidTaskNumberException(command, "");
         }
+        String[] words = trimmedArgument.split("\\s+");
+        int[] taskNumbers = new int[words.length];
+        for (int i = 0; i < words.length; i++) {
+            try {
+                taskNumbers[i] = Integer.parseInt(words[i]);
+            } catch (NumberFormatException e) {
+                // Translate Java's low-level parsing error into one of our own, so the command
+                // loop only ever has to know about ShannonException. The offending word is
+                // named, so "delete 1 two 3" points at "two" rather than at the whole line.
+                throw new InvalidTaskNumberException(command, words[i]);
+            }
+        }
+        return taskNumbers;
     }
 
     /**

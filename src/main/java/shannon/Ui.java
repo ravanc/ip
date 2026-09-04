@@ -115,28 +115,32 @@ public class Ui {
     }
 
     /**
-     * Returns the confirmation that a task was deleted, including how many tasks are left.
+     * Returns the confirmation that one or more tasks were deleted, including how many are left.
      *
-     * @param task      the task that was just removed.
-     * @param taskCount how many tasks are left in the list.
+     * @param deletedTasks the tasks that were just removed, in the order the user named them.
+     * @param taskCount    how many tasks are left in the list.
      * @return the confirmation text.
      */
-    public String getTaskDeletedMessage(Task task, int taskCount) {
-        return "Noted. I've removed this task:\n  " + task + "\n" + getTaskCountMessage(taskCount);
+    public String getTaskDeletedMessage(List<Task> deletedTasks, int taskCount) {
+        String heading = "Noted. I've removed "
+                + pluralize(deletedTasks.size(), "this task:", "these tasks:");
+        return heading + "\n" + getIndentedTasks(deletedTasks)
+                + "\n" + getTaskCountMessage(taskCount);
     }
 
     /**
-     * Returns the confirmation that a task's done flag was changed.
+     * Returns the confirmation that one or more tasks had their done flag changed.
      *
-     * @param task   the task that was just changed.
-     * @param isDone {@code true} if it was just marked done, {@code false} if it was unmarked.
+     * @param markedTasks the tasks that were just changed, in the order the user named them.
+     * @param isDone      {@code true} if they were marked done, {@code false} if unmarked.
      * @return the confirmation text.
      */
-    public String getTaskMarkedMessage(Task task, boolean isDone) {
+    public String getTaskMarkedMessage(List<Task> markedTasks, boolean isDone) {
+        String wording = pluralize(markedTasks.size(), "this task", "these tasks");
         String heading = isDone
-                ? "Nice! I've marked this task as done:"
-                : "OK, I've marked this task as not done yet:";
-        return heading + "\n  " + task;
+                ? "Nice! I've marked " + wording + " as done:"
+                : "OK, I've marked " + wording + " as not done yet:";
+        return heading + "\n" + getIndentedTasks(markedTasks);
     }
 
     /**
@@ -219,6 +223,23 @@ public class Ui {
     private String getTaskCountMessage(int taskCount) {
         return "Now you have " + taskCount + pluralize(taskCount, " task", " tasks")
                 + " in the list.";
+    }
+
+    /**
+     * Returns the given tasks one to a line, each indented, as the confirmations show them.
+     *
+     * @param tasks the tasks to lay out; the confirmations never call this with none.
+     * @return the indented lines, with no newline at the end.
+     */
+    private static String getIndentedTasks(List<Task> tasks) {
+        StringBuilder lines = new StringBuilder();
+        for (Task task : tasks) {
+            if (!lines.isEmpty()) {
+                lines.append("\n");
+            }
+            lines.append("  ").append(task);
+        }
+        return lines.toString();
     }
 
     /**

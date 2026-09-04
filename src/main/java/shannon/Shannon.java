@@ -1,5 +1,7 @@
 package shannon;
 
+import java.util.List;
+
 import shannon.exception.InvalidTaskNumberException;
 import shannon.exception.ShannonException;
 import shannon.exception.StorageException;
@@ -125,8 +127,8 @@ public class Shannon {
         StringBuilder message = new StringBuilder(ui.getWelcomeMessage());
         try {
             tasks = new TaskList(storage.load());
-            appendIfPresent(message, ui.getLoadedMessage(tasks.size()));
             appendIfPresent(message,
+                    ui.getLoadedMessage(tasks.size()),
                     ui.getSkippedLinesMessage(storage.getSkippedLineCount(), storage.getFilePath()));
         } catch (StorageException e) {
             appendIfPresent(message, ui.getErrorMessage(e.getMessage()));
@@ -146,16 +148,20 @@ public class Shannon {
     }
 
     /**
-     * Adds a message to what has been built so far, on a new line, unless it is empty.
+     * Adds messages to what has been built so far, one per line, skipping the empty ones.
      * The {@code get...Message} methods return an empty string when they have nothing to report,
      * and this keeps those non-reports from leaving blank lines behind.
+     * <p>
+     * Varargs, so the start-up report can be listed in one call in the order it should read.
      *
-     * @param message  what has been built so far.
-     * @param addition the message to add, which may be empty.
+     * @param message   what has been built so far.
+     * @param additions the messages to add, in order; any of them may be empty.
      */
-    private static void appendIfPresent(StringBuilder message, String addition) {
-        if (!addition.isEmpty()) {
-            message.append("\n").append(addition);
+    private static void appendIfPresent(StringBuilder message, String... additions) {
+        for (String addition : additions) {
+            if (!addition.isEmpty()) {
+                message.append("\n").append(addition);
+            }
         }
     }
 
@@ -177,9 +183,9 @@ public class Shannon {
             case "list" -> ui.getTaskListMessage(tasks.asList());
             // find only reads the list, so unlike the commands below it does not save afterwards.
             case "find" -> ui.getFoundTasksMessage(tasks.find(parser.parseKeyword()));
-            case "mark" -> markTask(parser, true);
-            case "unmark" -> markTask(parser, false);
-            case "delete" -> deleteTask(parser);
+            case "mark" -> markTasks(parser, true);
+            case "unmark" -> markTasks(parser, false);
+            case "delete" -> deleteTasks(parser);
             case "todo" -> addTask(parser.parseTodo());
             case "deadline" -> addTask(parser.parseDeadline());
             case "event" -> addTask(parser.parseEvent());
@@ -206,40 +212,48 @@ public class Shannon {
     }
 
     /**
-     * Handles {@code delete <task number>}.
+     * Handles {@code delete <task number>...}, which may name more than one task.
      *
      * @param parser the line the user typed, already split up.
      * @return the confirmation to show the user.
-     * @throws InvalidTaskNumberException if the argument is not a whole number.
-     * @throws TaskNotFoundException      if the number does not match any task in the list.
+     * @throws InvalidTaskNumberException if a task number is missing or is not a whole number.
+     * @throws TaskNotFoundException      if a number does not match any task in the list.
      * @throws StorageException           if the shortened list could not be saved to disk.
      */
-    private String deleteTask(Parser parser) throws ShannonException {
-        // deleteTask returns the task it removed, so the confirmation can still show what went.
-        Task task = tasks.deleteTask(parser.parseTaskNumber());
-        String message = ui.getTaskDeletedMessage(task, tasks.size());
+    private String deleteTasks(Parser parser) throws ShannonException {
+        // The numbers reach TaskList as varargs, so the one call covers "delete 2" and
+        // "delete 2 5 7". deleteTasks hands back what it removed, so the confirmation can still
+        // show what went.
+        List<Task> deletedTasks = tasks.deleteTasks(parser.parseTaskNumbers());
+        String message = ui.getTaskDeletedMessage(deletedTasks, tasks.size());
         storage.save(tasks.asList());
         return message;
     }
 
     /**
-     * Handles both {@code mark} and {@code unmark}, which differ only in the flag they set.
+     * Handles both {@code mark} and {@code unmark}, which differ only in the flag they set, and
+     * which may name more than one task.
      *
      * @param parser the line the user typed, already split up.
      * @param isDone {@code true} for {@code mark}, {@code false} for {@code unmark}.
      * @return the confirmation to show the user.
-     * @throws InvalidTaskNumberException if the argument is not a whole number.
-     * @throws TaskNotFoundException      if the number does not match any task in the list.
+     * @throws InvalidTaskNumberException if a task number is missing or is not a whole number.
+     * @throws TaskNotFoundException      if a number does not match any task in the list.
      * @throws StorageException           if the changed list could not be saved to disk.
      */
-    private String markTask(Parser parser, boolean isDone) throws ShannonException {
-        Task task = tasks.getTask(parser.parseTaskNumber());
-        if (isDone) {
-            task.markDone();
-        } else {
-            task.unmarkDone();
+    private String markTasks(Parser parser, boolean isDone) throws ShannonException {
+        // Every number is checked before any task changes, so a line naming one bad number
+        // leaves the whole list as it was.
+        List<Task> markedTasks = tasks.getTasks(parser.parseTaskNumbers());
+        for (Task task : markedTasks) {
+            if (isDone) {
+                task.markDone();
+            } else {
+                task.unmarkDone();
+            }
         }
-        String message = ui.getTaskMarkedMessage(task, isDone);
+
+        String message = ui.getTaskMarkedMessage(markedTasks, isDone);
         storage.save(tasks.asList());
         return message;
     }

@@ -2,7 +2,10 @@ package shannon;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import shannon.exception.TaskNotFoundException;
 import shannon.task.Task;
@@ -15,9 +18,12 @@ import shannon.task.Task;
  * refers to a real task, and here that check cannot be skipped, because the only way in is through
  * a method that performs it.
  * <p>
- * {@link #getTask(int)} and {@link #deleteTask(int)} take the number the user typed, counting from
- * 1, not a position counting from 0 &mdash; hence those names rather than {@code get}/{@code remove},
- * which a reader would rightly expect to be zero-based.
+ * {@link #getTasks(int...)} and {@link #deleteTasks(int...)} take the numbers the user typed,
+ * counting from 1, not positions counting from 0 &mdash; hence those names rather than
+ * {@code get}/{@code remove}, which a reader would rightly expect to be zero-based. Both are
+ * varargs, so one method serves {@code delete 2} and {@code delete 2 5 7} alike; the alternative,
+ * an overload taking a single {@code int} beside one taking a list, would be two methods that must
+ * be kept saying the same thing.
  */
 public class TaskList {
 
@@ -49,28 +55,47 @@ public class TaskList {
     }
 
     /**
-     * Returns the task the user asked for, leaving it in the list.
+     * Returns the tasks the user asked for, leaving them in the list.
      *
-     * @param taskNumber the number the user typed, counting from 1
-     * @return the task with that number
-     * @throws TaskNotFoundException if no task has that number
+     * @param taskNumbers the numbers the user typed, counting from 1; at least one is expected
+     * @return the tasks with those numbers, in the order asked for and without repeats
+     * @throws TaskNotFoundException if any of the numbers matches no task
      */
-    public Task getTask(int taskNumber) throws TaskNotFoundException {
-        return tasks.get(indexOf(taskNumber));
+    public List<Task> getTasks(int... taskNumbers) throws TaskNotFoundException {
+        List<Task> found = new ArrayList<>();
+        for (int index : indicesOf(taskNumbers)) {
+            found.add(tasks.get(index));
+        }
+        return Collections.unmodifiableList(found);
     }
 
     /**
-     * Removes the task the user asked for and returns it, so the caller can still show what was
-     * deleted.
+     * Removes the tasks the user asked for and returns them, so the caller can still show what
+     * was deleted.
+     * <p>
+     * Either every named task is removed or none is: the numbers are all checked before the first
+     * removal, so {@code delete 2 99} reports the bad number and leaves task 2 alone rather than
+     * deleting half of what was asked for.
      *
-     * @param taskNumber the number the user typed, counting from 1
-     * @return the task that was removed
-     * @throws TaskNotFoundException if no task has that number
+     * @param taskNumbers the numbers the user typed, counting from 1; at least one is expected
+     * @return the tasks that were removed, in the order asked for and without repeats
+     * @throws TaskNotFoundException if any of the numbers matches no task
      */
-    public Task deleteTask(int taskNumber) throws TaskNotFoundException {
-        // ArrayList.remove(int) also shifts the later tasks down to close the gap, which with a
-        // plain array we would have had to do by hand.
-        return tasks.remove(indexOf(taskNumber));
+    public List<Task> deleteTasks(int... taskNumbers) throws TaskNotFoundException {
+        List<Integer> indices = new ArrayList<>(indicesOf(taskNumbers));
+        List<Task> removed = new ArrayList<>();
+        for (int index : indices) {
+            removed.add(tasks.get(index));
+        }
+
+        // Highest position first. ArrayList.remove(int) shifts the later tasks down to close the
+        // gap, so removing in the order typed would leave the remaining indices pointing one
+        // place too far along the list.
+        indices.sort(Comparator.reverseOrder());
+        for (int index : indices) {
+            tasks.remove(index);
+        }
+        return Collections.unmodifiableList(removed);
     }
 
     /**
@@ -115,19 +140,27 @@ public class TaskList {
     }
 
     /**
-     * Turns a task number the user typed into a position in the list, checking it on the way.
+     * Turns the task numbers the user typed into positions in the list, checking each on the way.
      * <p>
      * Private, because a position is this class's own business: no caller outside should ever
      * hold one and risk using it after the list has changed.
+     * <p>
+     * A {@link LinkedHashSet} drops repeats while keeping the order they were typed in, so
+     * {@code delete 2 2} removes the second task once instead of removing it and then whatever
+     * moved up into its place.
      *
-     * @param taskNumber the number the user typed, counting from 1.
-     * @return the matching index, counting from 0.
-     * @throws TaskNotFoundException if the number does not match any task in the list.
+     * @param taskNumbers the numbers the user typed, counting from 1.
+     * @return the matching indices, counting from 0, in the order asked for and without repeats.
+     * @throws TaskNotFoundException if any number does not match a task in the list.
      */
-    private int indexOf(int taskNumber) throws TaskNotFoundException {
-        if (taskNumber < 1 || taskNumber > tasks.size()) {
-            throw new TaskNotFoundException(taskNumber, tasks.size());
+    private Set<Integer> indicesOf(int... taskNumbers) throws TaskNotFoundException {
+        Set<Integer> indices = new LinkedHashSet<>();
+        for (int taskNumber : taskNumbers) {
+            if (taskNumber < 1 || taskNumber > tasks.size()) {
+                throw new TaskNotFoundException(taskNumber, tasks.size());
+            }
+            indices.add(taskNumber - 1); // the user counts from 1, the list from 0
         }
-        return taskNumber - 1; // the user counts from 1, the list from 0
+        return indices;
     }
 }
