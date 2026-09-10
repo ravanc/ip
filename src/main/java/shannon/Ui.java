@@ -212,6 +212,18 @@ public class Ui {
     }
 
     /**
+     * Returns the confirmation that a deadline was snoozed, showing its new date.
+     *
+     * @param task the deadline that was just postponed.
+     * @param days how many days it was postponed by.
+     * @return the confirmation text.
+     */
+    public String getTaskSnoozedMessage(Task task, int days) {
+        return "Snoozed! I've pushed this back by " + days + pluralize(days, " day", " days")
+                + ":\n  " + task;
+    }
+
+    /**
      * Returns how many tasks are in the list, for use after one has been added or deleted.
      *
      * @param taskCount how many tasks are in the list now.

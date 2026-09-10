@@ -32,8 +32,8 @@ public class Deadline extends Task {
     private static final DateTimeFormatter DISPLAY_FORMAT =
             DateTimeFormatter.ofPattern("MMM dd yyyy", Locale.ENGLISH);
 
-    /** The date the task is due by. */
-    private final LocalDate by;
+    /** The date the task is due by. Not final, because {@link #snooze(int)} moves it. */
+    private LocalDate by;
 
     /**
      * Creates a deadline that is not yet done.
@@ -45,6 +45,17 @@ public class Deadline extends Task {
         super(description);
         assert by != null : "Deadline date must not be null";
         this.by = by;
+    }
+
+    /**
+     * Pushes the due date back by the given number of days, e.g. from Oct 01 to Oct 04 for 3.
+     * The task keeps its place in the list and its done status; only the date moves.
+     *
+     * @param days how many days to postpone by; at least 1.
+     */
+    public void snooze(int days) {
+        assert days > 0 : "A deadline can only be snoozed to a later date";
+        by = by.plusDays(days);
     }
 
     /**

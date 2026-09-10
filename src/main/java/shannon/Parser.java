@@ -3,6 +3,7 @@ package shannon;
 import shannon.exception.EmptyDescriptionException;
 import shannon.exception.EmptyKeywordException;
 import shannon.exception.InvalidDateException;
+import shannon.exception.InvalidSnoozeDaysException;
 import shannon.exception.InvalidTaskNumberException;
 import shannon.exception.MissingDeadlineByException;
 import shannon.exception.MissingEventTimeException;
@@ -26,6 +27,9 @@ import shannon.task.Todo;
 // ("Try: delete 2"). Splitting once in the constructor keeps the two in step, and means a line
 // cannot be split two different ways in two different places.
 public class Parser {
+
+    /** How many days {@code snooze} postpones a deadline by when the user gives no number. */
+    private static final int DEFAULT_SNOOZE_DAYS = 1;
 
     /** The first word, e.g. {@code deadline}. Empty if the user typed nothing. */
     private final String command;
@@ -167,5 +171,63 @@ public class Parser {
             throw new EmptyDescriptionException("event", "event team meeting /from 2026-08-09 2pm /to 4pm");
         }
         return new Event(parts[0].trim(), times[0].trim(), times[1].trim());
+    }
+
+    /**
+     * Reads {@code snooze <task number> [days]}.
+     * <p>
+     * The number of days is optional and defaults to 1, so the common case of "not today,
+     * tomorrow" is just {@code snooze 2}.
+     *
+     * @return the task to snooze and how many days to postpone it by.
+     * @throws InvalidTaskNumberException if the task number is missing or not a whole number.
+     * @throws InvalidSnoozeDaysException if the number of days is not a whole number of at least 1.
+     */
+    public SnoozeRequest parseSnooze() throws ShannonException {
+        String trimmedArgument = argument.trim();
+        if (trimmedArgument.isEmpty()) {
+            throw new InvalidTaskNumberException(command, "");
+        }
+        // Limit of 2, so everything after the task number is read as the number of days:
+        // "snooze 2 3 4" then reports "3 4" as not a number of days, instead of ignoring the 4.
+        String[] words = trimmedArgument.split("\\s+", 2);
+        int taskNumber;
+        try {
+            taskNumber = Integer.parseInt(words[0]);
+        } catch (NumberFormatException e) {
+            throw new InvalidTaskNumberException(command, words[0]);
+        }
+        int days = words.length > 1 ? parseSnoozeDays(words[1]) : DEFAULT_SNOOZE_DAYS;
+        return new SnoozeRequest(taskNumber, days);
+    }
+
+    /**
+     * Reads the number of days typed after the task number in a {@code snooze} command.
+     *
+     * @param text the text after the task number.
+     * @return the number of days, which is at least 1.
+     * @throws InvalidSnoozeDaysException if the text is not a whole number of at least 1.
+     */
+    private static int parseSnoozeDays(String text) throws InvalidSnoozeDaysException {
+        int days;
+        try {
+            days = Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            throw new InvalidSnoozeDaysException(text);
+        }
+        if (days < 1) {
+            throw new InvalidSnoozeDaysException(text);
+        }
+        return days;
+    }
+
+    /**
+     * What a {@code snooze} command asks for: which task, and by how many days.
+     * A record, because it only carries two values from the parser to the command that uses them.
+     *
+     * @param taskNumber the task to snooze, as the user typed it, counting from 1.
+     * @param days       how many days to postpone it by; at least 1.
+     */
+    public record SnoozeRequest(int taskNumber, int days) {
     }
 }

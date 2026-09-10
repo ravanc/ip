@@ -2,11 +2,14 @@ package shannon;
 
 import java.util.List;
 
+import shannon.exception.InvalidSnoozeDaysException;
 import shannon.exception.InvalidTaskNumberException;
 import shannon.exception.ShannonException;
 import shannon.exception.StorageException;
 import shannon.exception.TaskNotFoundException;
 import shannon.exception.UnknownCommandException;
+import shannon.exception.UnsnoozableTaskException;
+import shannon.task.Deadline;
 import shannon.task.Task;
 
 /**
@@ -186,6 +189,7 @@ public class Shannon {
             case "mark" -> markTasks(parser, true);
             case "unmark" -> markTasks(parser, false);
             case "delete" -> deleteTasks(parser);
+            case "snooze" -> snoozeTask(parser);
             case "todo" -> addTask(parser.parseTodo());
             case "deadline" -> addTask(parser.parseDeadline());
             case "event" -> addTask(parser.parseEvent());
@@ -254,6 +258,32 @@ public class Shannon {
         }
 
         String message = ui.getTaskMarkedMessage(markedTasks, isDone);
+        storage.save(tasks.asList());
+        return message;
+    }
+
+    /**
+     * Handles {@code snooze <task number> [days]}, which pushes a deadline's date back.
+     *
+     * @param parser the line the user typed, already split up.
+     * @return the confirmation to show the user.
+     * @throws InvalidTaskNumberException if the task number is missing or is not a whole number.
+     * @throws InvalidSnoozeDaysException if the number of days is not a whole number of at least 1.
+     * @throws TaskNotFoundException      if the number does not match any task in the list.
+     * @throws UnsnoozableTaskException   if the task is not a deadline.
+     * @throws StorageException           if the changed list could not be saved to disk.
+     */
+    private String snoozeTask(Parser parser) throws ShannonException {
+        Parser.SnoozeRequest request = parser.parseSnooze();
+        Task task = tasks.getTasks(request.taskNumber()).get(0);
+        // Only a deadline has a real date to move. Checking the type here keeps Task free of a
+        // snooze() that most of its subclasses could not honor.
+        if (!(task instanceof Deadline deadline)) {
+            throw new UnsnoozableTaskException(request.taskNumber(), task.toString());
+        }
+        deadline.snooze(request.days());
+
+        String message = ui.getTaskSnoozedMessage(deadline, request.days());
         storage.save(tasks.asList());
         return message;
     }

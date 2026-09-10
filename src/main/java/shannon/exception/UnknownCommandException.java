@@ -4,7 +4,7 @@ package shannon.exception;
 public class UnknownCommandException extends ShannonException {
 
     private static final String COMMAND_LIST =
-            "Try: todo, deadline, event, list, find, mark, unmark, delete or bye.";
+            "Try: todo, deadline, event, list, find, mark, unmark, delete, snooze or bye.";
 
     /**
      * Builds the message for an unrecognized command, listing the commands that do work.
