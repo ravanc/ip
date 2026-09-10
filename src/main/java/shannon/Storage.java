@@ -44,6 +44,9 @@ public class Storage {
      */
     public Storage(String filePath) {
         this.file = Path.of(filePath);
+        // save() creates the file's folder, so the path must name one, as ./data/duke.txt does.
+        // A bare "duke.txt" has no parent folder, and save() would fail on it.
+        assert file.getParent() != null : "Save file path must include a folder";
     }
 
     /**

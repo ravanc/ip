@@ -81,6 +81,8 @@ shadowJar {
 
 run {
     standardInput = System.in
+    // Java skips every `assert` statement unless assertions are switched on (the -ea flag).
+    enableAssertions = true
 }
 
 checkstyle {

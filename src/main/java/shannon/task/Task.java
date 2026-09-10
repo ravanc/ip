@@ -17,6 +17,9 @@ public abstract class Task {
      * @param description what the user wants to do
      */
     public Task(String description) {
+        // Parser and Storage both reject a blank description before building a task, so a blank
+        // one reaching here means a new caller forgot that check.
+        assert description != null && !description.isBlank() : "Task description must not be blank";
         this.description = description;
         this.isDone = false;
     }

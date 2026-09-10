@@ -69,6 +69,7 @@ public class MainWindow extends AnchorPane {
      * @param shannon the chatbot that will answer the user.
      */
     public void setShannon(Shannon shannon) {
+        assert shannon != null : "The window needs a chatbot to talk to";
         this.shannon = shannon;
         dialogContainer.getChildren().add(
                 DialogBox.getShannonDialog(shannon.getStartupMessage(), shannonImage));
@@ -82,6 +83,8 @@ public class MainWindow extends AnchorPane {
      */
     @FXML
     private void handleUserInput() {
+        // Main calls setShannon() before showing the window, so the user cannot type before then.
+        assert shannon != null : "setShannon() must be called before the window is shown";
         String input = userInput.getText();
         if (input.isBlank()) {
             return;

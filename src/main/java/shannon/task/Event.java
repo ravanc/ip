@@ -21,6 +21,9 @@ public class Event extends Task {
      */
     public Event(String description, String from, String to) {
         super(description);
+        // Parser and Storage both reject a missing /from or /to before building an event.
+        assert from != null && !from.isBlank() : "Event start must not be blank";
+        assert to != null && !to.isBlank() : "Event end must not be blank";
         this.from = from;
         this.to = to;
     }
