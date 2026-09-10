@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import shannon.exception.InvalidDateException;
 import shannon.exception.StorageException;
@@ -56,15 +57,14 @@ public class Storage {
      * @throws StorageException if the file could not be written.
      */
     public void save(List<Task> tasks) throws StorageException {
-        StringBuilder contents = new StringBuilder();
-        for (Task task : tasks) {
-            contents.append(task.toFileFormat()).append(System.lineSeparator());
-        }
+        String contents = tasks.stream()
+                .map(task -> task.toFileFormat() + System.lineSeparator())
+                .collect(Collectors.joining());
         try {
             Files.createDirectories(file.getParent());
             // writeString() creates the file if missing and truncates it if it already exists,
             // so the file always matches the list exactly.
-            Files.writeString(file, contents.toString());
+            Files.writeString(file, contents);
         } catch (IOException e) {
             throw StorageException.whileSaving(file.toString(), e.getMessage());
         }

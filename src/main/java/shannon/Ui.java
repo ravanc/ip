@@ -2,6 +2,8 @@ package shannon;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import shannon.exception.ShannonException;
 import shannon.task.Task;
@@ -153,14 +155,9 @@ public class Ui {
         if (tasks.isEmpty()) {
             return "Your list is empty!";
         }
-        StringBuilder list = new StringBuilder();
-        for (int i = 0; i < tasks.size(); i++) {
-            if (i > 0) {
-                list.append("\n");
-            }
-            list.append(i + 1).append(". ").append(tasks.get(i));
-        }
-        return list.toString();
+        return IntStream.range(0, tasks.size())
+                .mapToObj(i -> (i + 1) + ". " + tasks.get(i))
+                .collect(Collectors.joining("\n"));
     }
 
     /**

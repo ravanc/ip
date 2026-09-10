@@ -88,10 +88,9 @@ public class TaskList {
         assert taskNumbers.length > 0 : "At least one task number is expected";
         int sizeBefore = tasks.size();
         List<Integer> indices = new ArrayList<>(indicesOf(taskNumbers));
-        List<Task> removed = new ArrayList<>();
-        for (int index : indices) {
-            removed.add(tasks.get(index));
-        }
+        List<Task> removed = indices.stream()
+                .map(tasks::get)
+                .toList();
 
         // Highest position first. ArrayList.remove(int) shifts the later tasks down to close the
         // gap, so removing in the order typed would leave the remaining indices pointing one
@@ -122,13 +121,9 @@ public class TaskList {
      */
     public List<Task> find(String keyword) {
         String lowerKeyword = keyword.toLowerCase();
-        List<Task> matches = new ArrayList<>();
-        for (Task task : tasks) {
-            if (task.getDescription().toLowerCase().contains(lowerKeyword)) {
-                matches.add(task);
-            }
-        }
-        return Collections.unmodifiableList(matches);
+        return tasks.stream()
+                .filter(task -> task.getDescription().toLowerCase().contains(lowerKeyword))
+                .toList();
     }
 
     /** Returns how many tasks are in the list. */
