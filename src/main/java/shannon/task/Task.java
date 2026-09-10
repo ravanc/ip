@@ -2,14 +2,22 @@ package shannon.task;
 
 /**
  * A single task: its description, and whether it is done.
- * Fields are {@code protected} so that subclasses can reuse them.
+ * Subclasses add their own details and build on {@link #toString()} and {@link #encode(String)},
+ * so the fields here can stay private.
  */
 public abstract class Task {
+
+    /** The save-file flag for a task that is done. */
+    public static final String FLAG_DONE = "1";
+
+    /** The save-file flag for a task that is not done yet. */
+    public static final String FLAG_NOT_DONE = "0";
+
     /** What the user wants to do, exactly as they typed it. */
-    protected String description;
+    private final String description;
 
     /** Whether the task has been marked done. New tasks start not done. */
-    protected boolean isDone;
+    private boolean isDone;
 
     /**
      * Creates a task that is not yet done.
@@ -26,6 +34,11 @@ public abstract class Task {
         return description;
     }
 
+    /**
+     * Returns the symbol shown inside the brackets of a task, e.g. the X in {@code [X] read book}.
+     *
+     * @return {@code "X"} if the task is done, or a space if it is not
+     */
     public String getStatusIcon() {
         return isDone ? "X" : " ";
     }
@@ -62,7 +75,7 @@ public abstract class Task {
      */
     protected String encode(String type) {
         // The type and the done flag are values we control, so only the description needs escaping.
-        return type + " | " + (isDone ? "1" : "0") + " | " + escape(description);
+        return type + " | " + (isDone ? FLAG_DONE : FLAG_NOT_DONE) + " | " + escape(description);
     }
 
     /**

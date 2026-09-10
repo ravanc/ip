@@ -22,6 +22,9 @@ import shannon.Shannon;
  */
 public class MainWindow extends AnchorPane {
 
+    /** How long the window stays open after {@code bye}, so the goodbye can be read. */
+    private static final double GOODBYE_DELAY_SECONDS = 1.5;
+
     /** The scrolling area holding the conversation. */
     @FXML
     private ScrollPane scrollPane;
@@ -104,7 +107,7 @@ public class MainWindow extends AnchorPane {
      * Closing immediately would make the reply flash past unseen.
      */
     private void closeAfterGoodbye() {
-        PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
+        PauseTransition pause = new PauseTransition(Duration.seconds(GOODBYE_DELAY_SECONDS));
         pause.setOnFinished(event -> Platform.exit());
         pause.play();
     }

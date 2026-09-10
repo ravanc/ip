@@ -156,7 +156,10 @@ public class Parser {
         // Split on the markers themselves (see parseDeadline) so a missing description is
         // reported as such instead of looking like a missing /from.
         String[] parts = argument.split("/from", 2);
-        String[] times = parts.length < 2 ? new String[0] : parts[1].split("/to", 2);
+        if (parts.length < 2) {
+            throw new MissingEventTimeException();
+        }
+        String[] times = parts[1].split("/to", 2);
         if (times.length < 2 || times[0].trim().isEmpty() || times[1].trim().isEmpty()) {
             throw new MissingEventTimeException();
         }

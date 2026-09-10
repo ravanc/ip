@@ -6,6 +6,9 @@ package shannon.task;
  */
 public class Todo extends Task {
 
+    /** The letter that marks a to-do in the save file. */
+    public static final String TYPE_CODE = "T";
+
     /**
      * Creates a to-do that is not yet done.
      *
@@ -24,6 +27,6 @@ public class Todo extends Task {
     /** Renders as {@code T | 1 | visit new theme park}. */
     @Override
     public String toFileFormat() {
-        return encode("T");
+        return encode(TYPE_CODE);
     }
 }

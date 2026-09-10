@@ -172,23 +172,40 @@ public class Storage {
         }
         String doneFlag = fields.get(1);
         String description = fields.get(2);
-        if (description.isEmpty() || !(doneFlag.equals("0") || doneFlag.equals("1"))) {
+        boolean isValidFlag = doneFlag.equals(Task.FLAG_DONE) || doneFlag.equals(Task.FLAG_NOT_DONE);
+        if (description.isEmpty() || !isValidFlag) {
             return null;
         }
         // Each task type has a fixed number of fields, so a line with too many or too few is
         // damaged even if its type letter is valid.
         Task task = switch (fields.get(0)) {
-            case "T" -> fields.size() == 3 ? new Todo(description) : null;
-            case "D" -> fields.size() == 4 ? parseDeadline(description, fields.get(3)) : null;
-            case "E" -> fields.size() == 5 && !fields.get(3).isEmpty() && !fields.get(4).isEmpty()
-                    ? new Event(description, fields.get(3), fields.get(4))
+            case Todo.TYPE_CODE -> fields.size() == 3 ? new Todo(description) : null;
+            case Deadline.TYPE_CODE -> fields.size() == 4 ? parseDeadline(description, fields.get(3)) : null;
+            case Event.TYPE_CODE -> fields.size() == 5
+                    ? parseEvent(description, fields.get(3), fields.get(4))
                     : null;
             default -> null;
         };
-        if (task != null && doneFlag.equals("1")) {
+        if (task != null && doneFlag.equals(Task.FLAG_DONE)) {
             task.markDone();
         }
         return task;
+    }
+
+    /**
+     * Rebuilds an {@link Event} from a saved line.
+     *
+     * @param description the task description, already unescaped.
+     * @param from        the saved start time.
+     * @param to          the saved end time.
+     * @return the task, or {@code null} if either time is blank, which makes the caller skip
+     *         the line like any other damaged one.
+     */
+    private static Task parseEvent(String description, String from, String to) {
+        if (from.isEmpty() || to.isEmpty()) {
+            return null;
+        }
+        return new Event(description, from, to);
     }
 
     /**
