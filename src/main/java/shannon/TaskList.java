@@ -51,6 +51,7 @@ public class TaskList {
      * @param task the task to add
      */
     public void add(Task task) {
+        assert task != null : "Cannot add a null task";
         tasks.add(task);
     }
 
@@ -62,10 +63,13 @@ public class TaskList {
      * @throws TaskNotFoundException if any of the numbers matches no task
      */
     public List<Task> getTasks(int... taskNumbers) throws TaskNotFoundException {
-        // Stream.toList() already returns an unmodifiable list, so no extra wrapping is needed.
-        return indicesOf(taskNumbers).stream()
-                .map(tasks::get)
-                .toList();
+        // Parser.parseTaskNumbers() refuses an empty line, so there is always at least one number.
+        assert taskNumbers.length > 0 : "At least one task number is expected";
+        List<Task> found = new ArrayList<>();
+        for (int index : indicesOf(taskNumbers)) {
+            found.add(tasks.get(index));
+        }
+        return Collections.unmodifiableList(found);
     }
 
     /**
@@ -81,6 +85,8 @@ public class TaskList {
      * @throws TaskNotFoundException if any of the numbers matches no task
      */
     public List<Task> deleteTasks(int... taskNumbers) throws TaskNotFoundException {
+        assert taskNumbers.length > 0 : "At least one task number is expected";
+        int sizeBefore = tasks.size();
         List<Integer> indices = new ArrayList<>(indicesOf(taskNumbers));
         List<Task> removed = indices.stream()
                 .map(tasks::get)
@@ -93,7 +99,10 @@ public class TaskList {
         for (int index : indices) {
             tasks.remove(index);
         }
-        return removed;
+        // Repeats were already dropped by indicesOf(), so every task collected above went once.
+        assert tasks.size() == sizeBefore - removed.size()
+                : "Each named task should be removed exactly once";
+        return Collections.unmodifiableList(removed);
     }
 
     /**

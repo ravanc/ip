@@ -229,9 +229,15 @@ public class Ui {
      * @return the indented lines, with no newline at the end.
      */
     private static String getIndentedTasks(List<Task> tasks) {
-        return tasks.stream()
-                .map(task -> "  " + task)
-                .collect(Collectors.joining("\n"));
+        assert !tasks.isEmpty() : "A confirmation is only shown after at least one task changed";
+        StringBuilder lines = new StringBuilder();
+        for (Task task : tasks) {
+            if (!lines.isEmpty()) {
+                lines.append("\n");
+            }
+            lines.append("  ").append(task);
+        }
+        return lines.toString();
     }
 
     /**
@@ -244,6 +250,7 @@ public class Ui {
      * @return whichever of the two fits the count.
      */
     private static String pluralize(int count, String singular, String pluralForm) {
+        assert count >= 0 : "A count cannot be negative";
         return count == 1 ? singular : pluralForm;
     }
 }

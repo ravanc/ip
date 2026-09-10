@@ -22,6 +22,9 @@ import shannon.Shannon;
  */
 public class MainWindow extends AnchorPane {
 
+    /** How long the window stays open after {@code bye}, so the goodbye can be read. */
+    private static final double GOODBYE_DELAY_SECONDS = 1.5;
+
     /** The scrolling area holding the conversation. */
     @FXML
     private ScrollPane scrollPane;
@@ -69,6 +72,7 @@ public class MainWindow extends AnchorPane {
      * @param shannon the chatbot that will answer the user.
      */
     public void setShannon(Shannon shannon) {
+        assert shannon != null : "The window needs a chatbot to talk to";
         this.shannon = shannon;
         dialogContainer.getChildren().add(
                 DialogBox.getShannonDialog(shannon.getStartupMessage(), shannonImage));
@@ -82,6 +86,8 @@ public class MainWindow extends AnchorPane {
      */
     @FXML
     private void handleUserInput() {
+        // Main calls setShannon() before showing the window, so the user cannot type before then.
+        assert shannon != null : "setShannon() must be called before the window is shown";
         String input = userInput.getText();
         if (input.isBlank()) {
             return;
@@ -104,7 +110,7 @@ public class MainWindow extends AnchorPane {
      * Closing immediately would make the reply flash past unseen.
      */
     private void closeAfterGoodbye() {
-        PauseTransition pause = new PauseTransition(Duration.seconds(1.5));
+        PauseTransition pause = new PauseTransition(Duration.seconds(GOODBYE_DELAY_SECONDS));
         pause.setOnFinished(event -> Platform.exit());
         pause.play();
     }

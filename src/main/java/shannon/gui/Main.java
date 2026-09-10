@@ -18,6 +18,12 @@ import shannon.Shannon;
  */
 public class Main extends Application {
 
+    /** The smallest height, in pixels, the window can be shrunk to. */
+    private static final double WINDOW_MIN_HEIGHT = 600.0;
+
+    /** The smallest width, in pixels, the window can be shrunk to. */
+    private static final double WINDOW_MIN_WIDTH = 400.0;
+
     /** The chatbot the window talks to. The same class the terminal version uses. */
     private final Shannon shannon = new Shannon();
 
@@ -30,8 +36,8 @@ public class Main extends Application {
 
             stage.setScene(scene);
             stage.setTitle("Shannon");
-            stage.setMinHeight(600.0);
-            stage.setMinWidth(400.0);
+            stage.setMinHeight(WINDOW_MIN_HEIGHT);
+            stage.setMinWidth(WINDOW_MIN_WIDTH);
 
             // Only available after load(), which is what creates the controller.
             fxmlLoader.<MainWindow>getController().setShannon(shannon);

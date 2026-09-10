@@ -6,11 +6,14 @@ package shannon.task;
  */
 public class Event extends Task {
 
+    /** The letter that marks an event in the save file. */
+    public static final String TYPE_CODE = "E";
+
     /** When the event starts, kept as the text the user typed. */
-    protected String from;
+    private final String from;
 
     /** When the event ends, kept as the text the user typed. */
-    protected String to;
+    private final String to;
 
     /**
      * Creates an event that is not yet done.
@@ -21,6 +24,9 @@ public class Event extends Task {
      */
     public Event(String description, String from, String to) {
         super(description);
+        // Parser and Storage both reject a missing /from or /to before building an event.
+        assert from != null && !from.isBlank() : "Event start must not be blank";
+        assert to != null && !to.isBlank() : "Event end must not be blank";
         this.from = from;
         this.to = to;
     }
@@ -34,6 +40,6 @@ public class Event extends Task {
     /** Renders as {@code E | 0 | team meeting | 2026-08-09 2pm | 4pm}. */
     @Override
     public String toFileFormat() {
-        return encode("E") + " | " + escape(from) + " | " + escape(to);
+        return encode(TYPE_CODE) + " | " + escape(from) + " | " + escape(to);
     }
 }
