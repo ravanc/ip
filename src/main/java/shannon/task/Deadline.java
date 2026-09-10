@@ -18,6 +18,9 @@ import shannon.exception.InvalidDateException;
 // for would be inventing information.
 public class Deadline extends Task {
 
+    /** The letter that marks a deadline in the save file. */
+    public static final String TYPE_CODE = "D";
+
     /** The format the user types and the format written to the save file, e.g. {@code 2026-08-09}. */
     private static final DateTimeFormatter INPUT_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
 
@@ -30,7 +33,7 @@ public class Deadline extends Task {
             DateTimeFormatter.ofPattern("MMM dd yyyy", Locale.ENGLISH);
 
     /** The date the task is due by. */
-    protected LocalDate by;
+    private final LocalDate by;
 
     /**
      * Creates a deadline that is not yet done.
@@ -77,6 +80,6 @@ public class Deadline extends Task {
      */
     @Override
     public String toFileFormat() {
-        return encode("D") + " | " + escape(by.format(INPUT_FORMAT));
+        return encode(TYPE_CODE) + " | " + escape(by.format(INPUT_FORMAT));
     }
 }

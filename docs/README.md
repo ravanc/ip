@@ -21,7 +21,7 @@ expected output
 ## Finding tasks
 
 Use `find` to pull up every task whose description contains a keyword. The search ignores
-capitalisation and matches any part of a description, so `find book` also finds "Bookshop".
+capitalization and matches any part of a description, so `find book` also finds "Bookshop".
 Only the description is searched, not a deadline's date or an event's times.
 
 Format: `find KEYWORD`
