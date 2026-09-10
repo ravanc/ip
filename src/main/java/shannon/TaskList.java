@@ -62,11 +62,10 @@ public class TaskList {
      * @throws TaskNotFoundException if any of the numbers matches no task
      */
     public List<Task> getTasks(int... taskNumbers) throws TaskNotFoundException {
-        List<Task> found = new ArrayList<>();
-        for (int index : indicesOf(taskNumbers)) {
-            found.add(tasks.get(index));
-        }
-        return Collections.unmodifiableList(found);
+        // Stream.toList() already returns an unmodifiable list, so no extra wrapping is needed.
+        return indicesOf(taskNumbers).stream()
+                .map(tasks::get)
+                .toList();
     }
 
     /**
@@ -83,10 +82,9 @@ public class TaskList {
      */
     public List<Task> deleteTasks(int... taskNumbers) throws TaskNotFoundException {
         List<Integer> indices = new ArrayList<>(indicesOf(taskNumbers));
-        List<Task> removed = new ArrayList<>();
-        for (int index : indices) {
-            removed.add(tasks.get(index));
-        }
+        List<Task> removed = indices.stream()
+                .map(tasks::get)
+                .toList();
 
         // Highest position first. ArrayList.remove(int) shifts the later tasks down to close the
         // gap, so removing in the order typed would leave the remaining indices pointing one
@@ -95,7 +93,7 @@ public class TaskList {
         for (int index : indices) {
             tasks.remove(index);
         }
-        return Collections.unmodifiableList(removed);
+        return removed;
     }
 
     /**
@@ -114,13 +112,9 @@ public class TaskList {
      */
     public List<Task> find(String keyword) {
         String lowerKeyword = keyword.toLowerCase();
-        List<Task> matches = new ArrayList<>();
-        for (Task task : tasks) {
-            if (task.getDescription().toLowerCase().contains(lowerKeyword)) {
-                matches.add(task);
-            }
-        }
-        return Collections.unmodifiableList(matches);
+        return tasks.stream()
+                .filter(task -> task.getDescription().toLowerCase().contains(lowerKeyword))
+                .toList();
     }
 
     /** Returns how many tasks are in the list. */
