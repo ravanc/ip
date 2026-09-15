@@ -27,5 +27,22 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
 
 
-## AI Declaration:
-There was a rough average of AI-4 used throughout the project, as I had an idea how it was going to be done without referencing the CS2103T site. However, sometimes Claude Code jumps ahead of the implementation and completes future modules, which will be mentioned in the commit messages. 
+## Acknowledgements
+
+### Third-party libraries
+- [JavaFX](https://openjfx.io/): graphical user interface
+- [JUnit 5](https://junit.org/junit5/): unit testing
+- [Shadow Gradle plugin](https://gradleup.com/shadow/): packaging the runnable JAR
+- [Checkstyle](https://checkstyle.org/): coding standard checks
+
+The avatar images (`DaUser.png`, `DaDuke.png`) come from the SE-EDU JavaFX tutorial.
+
+### Use of AI tools
+- **Tool:** [Claude Code](https://claude.com/claude-code), Anthropic's AI coding agent,
+  running Claude Opus 5.
+- **Used by:** Ravan ([@ravanc](https://github.com/ravanc))
+- **Extent:** Claude Code wrote almost all of the code in this repository, including the
+  task logic, parsing, storage, error handling and JavaFX GUI. It also wrote most commit
+  messages and parts of the documentation, including sections of the User Guide. I decided
+  what to build, prompted and directed each change, and reviewed the results before
+  committing.
