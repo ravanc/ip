@@ -35,7 +35,8 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 - [Shadow Gradle plugin](https://gradleup.com/shadow/): packaging the runnable JAR
 - [Checkstyle](https://checkstyle.org/): coding standard checks
 
-The avatar images (`DaUser.png`, `DaDuke.png`) come from the SE-EDU JavaFX tutorial.
+The avatar images (`DaUser.png`, and `Shannon.png`, renamed from `DaDuke.png`) come from the
+SE-EDU JavaFX tutorial.
 
 ### Use of AI tools
 - **Tool:** [Claude Code](https://claude.com/claude-code), Anthropic's AI coding agent,

@@ -38,14 +38,14 @@ import shannon.task.Todo;
  * The file is an ordinary text file, so it can go missing, become unreadable, or be edited by
  * hand into something that is not a task list. None of these stops the chatbot. A missing file
  * just means a first run. A file that cannot be fully loaded is copied to a backup, e.g.
- * {@code duke.txt.bak}, before the next save rewrites it, so the tasks that could not be read
+ * {@code shannon.txt.bak}, before the next save rewrites it, so the tasks that could not be read
  * are never silently destroyed.
  */
 // The whole list is rewritten on every change, which is the simplest thing that works for a list
 // this small; appending only what changed costs far more complexity than a to-do list is worth.
 public class Storage {
 
-    /** Added to the save file's name to name its backup copy, e.g. {@code duke.txt.bak}. */
+    /** Added to the save file's name to name its backup copy, e.g. {@code shannon.txt.bak}. */
     private static final String BACKUP_SUFFIX = ".bak";
 
     /** The save file this Storage reads and writes. */
@@ -70,12 +70,12 @@ public class Storage {
     /**
      * Creates a Storage pointing at one save file, without reading or creating it.
      *
-     * @param filePath path to the save file, e.g. {@code ./data/duke.txt}
+     * @param filePath path to the save file, e.g. {@code ./data/shannon.txt}
      */
     public Storage(String filePath) {
         this.file = Path.of(filePath);
-        // save() creates the file's folder, so the path must name one, as ./data/duke.txt does.
-        // A bare "duke.txt" has no parent folder, and save() would fail on it.
+        // save() creates the file's folder, so the path must name one, as ./data/shannon.txt does.
+        // A bare "shannon.txt" has no parent folder, and save() would fail on it.
         assert file.getParent() != null : "Save file path must include a folder";
         this.backupFile = file.resolveSibling(file.getFileName() + BACKUP_SUFFIX);
     }

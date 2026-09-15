@@ -35,7 +35,7 @@ import shannon.task.Task;
 public class Shannon {
 
     /** Where the task list is saved by default, relative to the project root. */
-    private static final String DATA_FILE_PATH = "./data/duke.txt";
+    private static final String DATA_FILE_PATH = "./data/shannon.txt";
 
     /** The command word that ends the conversation. */
     private static final String EXIT_COMMAND = "bye";
@@ -57,7 +57,7 @@ public class Shannon {
      * {@link #getStartupMessage()}; the empty list built here is what the program falls back on
      * if that reading fails.
      *
-     * @param filePath the save file to use, e.g. {@code ./data/duke.txt}.
+     * @param filePath the save file to use, e.g. {@code ./data/shannon.txt}.
      */
     public Shannon(String filePath) {
         ui = new Ui();

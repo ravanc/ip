@@ -51,9 +51,9 @@ public class MainWindow extends VBox {
     /** The user's avatar, loaded once and reused by every bubble the user sends. */
     private final Image userImage = new Image(this.getClass().getResourceAsStream("/images/DaUser.png"));
 
-    /** Shannon's avatar, likewise reused. Still the tutorial's file name, hence "DaDuke". */
+    /** Shannon's avatar, likewise reused. */
     private final Image shannonImage =
-            new Image(this.getClass().getResourceAsStream("/images/DaDuke.png"));
+            new Image(this.getClass().getResourceAsStream("/images/Shannon.png"));
 
     /**
      * Prepares the window once the FXML has been loaded and the fields above are filled in.
