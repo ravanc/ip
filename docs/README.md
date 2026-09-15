@@ -1,6 +1,6 @@
 # Shannon User Guide
 
-![Shannon's chat window, listing four tasks and marking one as done](Ui.png)
+<img src="Ui.png" alt="Shannon's chat window, listing four tasks and marking one as done" width="420">
 
 **Shannon** is a chatbot that keeps your to-do list for you. Tell it about your todos, deadlines
 and events in short typed commands, and it keeps track of them, and remembers them the next time
