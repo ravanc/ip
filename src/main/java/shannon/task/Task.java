@@ -56,6 +56,26 @@ public abstract class Task {
         this.isDone = false;
     }
 
+    /**
+     * Returns whether {@code other} is the same task as this one, as far as the user could tell:
+     * the same kind of task, with the same description and dates.
+     * <p>
+     * Capitalization is ignored, so {@code read book} and {@code Read Book} count as the same,
+     * and so is whether either task is done. Subclasses that have dates extend this to compare
+     * those as well.
+     * <p>
+     * A method of its own rather than an override of {@code equals}: two tasks with the same
+     * details are still two separate entries in the list, and an {@code equals} that said
+     * otherwise would make methods such as {@code List.indexOf} mistake one for the other.
+     *
+     * @param other the task to compare with.
+     * @return {@code true} if listing both would show the same task twice.
+     */
+    public boolean hasSameDetails(Task other) {
+        return other != null && other.getClass() == getClass()
+                && description.equalsIgnoreCase(other.description);
+    }
+
     /** Renders as {@code [X] read book}. */
     @Override
     public String toString() {

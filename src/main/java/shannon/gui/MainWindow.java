@@ -109,6 +109,10 @@ public class MainWindow extends VBox {
         userInput.clear();
 
         if (shannon.isExitCommand(input)) {
+            // Stop taking input: anything typed now would be answered by a chatbot that has
+            // already said goodbye and is about to close.
+            userInput.setDisable(true);
+            sendButton.setDisable(true);
             closeAfterGoodbye();
         }
     }

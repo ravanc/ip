@@ -3,6 +3,7 @@ package shannon.gui;
 import java.io.IOException;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
@@ -53,6 +54,9 @@ public class Main extends Application {
             // The FXML is packaged with the program, so a failure here means a broken build
             // rather than anything the user did.
             e.printStackTrace();
+            // No window was shown, so there is nothing for the user to close, and JavaFX would
+            // keep running invisibly. Shut it down instead.
+            Platform.exit();
         }
     }
 }

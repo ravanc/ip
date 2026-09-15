@@ -2,10 +2,12 @@ package shannon;
 
 import java.util.List;
 
+import shannon.exception.DuplicateTaskException;
 import shannon.exception.InvalidTaskNumberException;
 import shannon.exception.ShannonException;
 import shannon.exception.StorageException;
 import shannon.exception.TaskNotFoundException;
+import shannon.exception.UnexpectedArgumentException;
 import shannon.exception.UnknownCommandException;
 import shannon.task.Task;
 
@@ -72,8 +74,8 @@ public class Shannon {
     }
 
     /**
-     * Greets the user, restores the saved tasks, then answers commands until {@code bye}.
-     * This is the terminal version of the chatbot.
+     * Greets the user, restores the saved tasks, then answers commands until {@code bye}, or
+     * until the input runs out. This is the terminal version of the chatbot.
      */
     public void run() {
         ui.showLine();
@@ -81,19 +83,24 @@ public class Shannon {
         ui.showMessage(getStartupMessage());
         ui.showLine();
 
-        String input = ui.readCommand();
-        while (!isExitCommand(input)) {
+        // The input can end without a bye: the user may press Ctrl-D, or a file piped in as
+        // input may run out. Checking before each read avoids the crash that reading past the
+        // end would cause.
+        while (ui.hasNextCommand()) {
+            String input = ui.readCommand();
             ui.showLine();
             // The terminal shows every reply the same way, so it wants only the words; the
             // window also asks whether they are an error, and styles them accordingly.
             ui.showMessage(getResponse(input).text());
             ui.showLine();
-
-            input = ui.readCommand();
+            if (isExitCommand(input)) {
+                return;
+            }
         }
 
+        // The input ended without a bye, so say goodbye anyway rather than stop mid-conversation.
         ui.showLine();
-        ui.showMessage(getResponse(input).text());
+        ui.showMessage(ui.getGoodbyeMessage());
         ui.showLine();
     }
 
@@ -140,18 +147,27 @@ public class Shannon {
         } catch (StorageException e) {
             appendIfPresent(message, ui.getErrorMessage(e.getMessage()));
         }
+        // Whether the file was partly or wholly unreadable, say how what could not be loaded has
+        // been kept safe, so the user knows it is not gone.
+        appendIfPresent(message, ui.getBackupMessage(
+                storage.getFilePath(), storage.getBackupFilePath(), storage.isSaveBlocked()));
         return message.toString();
     }
 
     /**
      * Returns whether a line the user typed asks to end the conversation.
      * The GUI needs to know this so it can close the window afterwards.
+     * <p>
+     * Only a {@code bye} with nothing after it counts. {@link #handleCommand(Parser)} refuses
+     * {@code bye now} as a mistyped command, and this must agree with it, or the window would
+     * close straight after showing that error.
      *
      * @param input one line exactly as the user typed it.
-     * @return {@code true} if the line is the {@code bye} command.
+     * @return {@code true} if the line is the {@code bye} command on its own.
      */
     public boolean isExitCommand(String input) {
-        return EXIT_COMMAND.equals(new Parser(input).getCommand());
+        Parser parser = new Parser(input);
+        return EXIT_COMMAND.equals(parser.getCommand()) && !parser.hasArgument();
     }
 
     /**
@@ -186,8 +202,8 @@ public class Shannon {
      */
     private String handleCommand(Parser parser) throws ShannonException {
         return switch (parser.getCommand()) {
-            case EXIT_COMMAND -> ui.getGoodbyeMessage();
-            case "list" -> ui.getTaskListMessage(tasks.asList());
+            case EXIT_COMMAND -> sayGoodbye(parser);
+            case "list" -> listTasks(parser);
             // find only reads the list, so unlike the commands below it does not save afterwards.
             case "find" -> ui.getFoundTasksMessage(tasks.find(parser.parseKeyword()));
             case "mark" -> markTasks(parser, true);
@@ -201,13 +217,38 @@ public class Shannon {
     }
 
     /**
+     * Handles {@code bye}, which takes nothing after it.
+     *
+     * @param parser the line the user typed, already split up.
+     * @return the goodbye to show the user.
+     * @throws UnexpectedArgumentException if anything was typed after {@code bye}.
+     */
+    private String sayGoodbye(Parser parser) throws UnexpectedArgumentException {
+        parser.checkNoArgument();
+        return ui.getGoodbyeMessage();
+    }
+
+    /**
+     * Handles {@code list}, which takes nothing after it.
+     *
+     * @param parser the line the user typed, already split up.
+     * @return every task, numbered, or a note that the list is empty.
+     * @throws UnexpectedArgumentException if anything was typed after {@code list}.
+     */
+    private String listTasks(Parser parser) throws UnexpectedArgumentException {
+        parser.checkNoArgument();
+        return ui.getTaskListMessage(tasks.asList());
+    }
+
+    /**
      * Stores an already-built task, writes the whole list to disk, and returns the confirmation.
      * Every {@code todo}/{@code deadline}/{@code event} command funnels through here so the
      * confirmation message and the save live in exactly one place.
      *
      * @param task the task to add.
      * @return the confirmation to show the user.
-     * @throws StorageException if the task was added but could not be saved to disk.
+     * @throws DuplicateTaskException if the list already has a task with the same details.
+     * @throws StorageException       if the task was added but could not be saved to disk.
      */
     private String addTask(Task task) throws ShannonException {
         tasks.add(task);

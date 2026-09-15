@@ -1,9 +1,6 @@
 package shannon.task;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.Locale;
 
 import shannon.exception.InvalidDateException;
 
@@ -20,17 +17,6 @@ public class Deadline extends Task {
 
     /** The letter that marks a deadline in the save file. */
     public static final String TYPE_CODE = "D";
-
-    /** The format the user types and the format written to the save file, e.g. {@code 2026-08-09}. */
-    private static final DateTimeFormatter INPUT_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
-
-    /**
-     * The format shown to the user, e.g. {@code Aug 09 2026}.
-     * {@link Locale#ENGLISH} is fixed explicitly so the month name does not change with whatever
-     * locale the machine happens to be set to.
-     */
-    private static final DateTimeFormatter DISPLAY_FORMAT =
-            DateTimeFormatter.ofPattern("MMM dd yyyy", Locale.ENGLISH);
 
     /** The date the task is due by. */
     private final LocalDate by;
@@ -50,27 +36,22 @@ public class Deadline extends Task {
     /**
      * Turns the text after {@code /by} into a date.
      * <p>
-     * Kept here, next to the formats, so the command handler and the save-file loader agree on
+     * The command handler and the save-file loader both come through here, so they agree on
      * exactly which dates are acceptable instead of each having their own copy of the rule.
      *
      * @param text the date as typed, expected in {@code yyyy-mm-dd} form.
      * @return the date it names.
-     * @throws InvalidDateException if the text is not a date in that form.
+     * @throws InvalidDateException if the text is not a date in that form, or names a day that
+     *                              does not exist, such as {@code 2026-02-30}.
      */
     public static LocalDate parseBy(String text) throws InvalidDateException {
-        try {
-            return LocalDate.parse(text.trim(), INPUT_FORMAT);
-        } catch (DateTimeParseException e) {
-            // Translate java.time's parsing error into one of our own, so the command loop only
-            // ever has to know about ShannonException.
-            throw new InvalidDateException(text.trim());
-        }
+        return DateUtil.parseDate(text.trim());
     }
 
     /** Renders as {@code [D][X] submit report (by: Aug 09 2026)}. */
     @Override
     public String toString() {
-        return "[D]" + super.toString() + " (by: " + by.format(DISPLAY_FORMAT) + ")";
+        return "[D]" + super.toString() + " (by: " + by.format(DateUtil.DATE_DISPLAY_FORMAT) + ")";
     }
 
     /**
@@ -80,6 +61,12 @@ public class Deadline extends Task {
      */
     @Override
     public String toFileFormat() {
-        return encode(TYPE_CODE) + " | " + escape(by.format(INPUT_FORMAT));
+        return encode(TYPE_CODE) + " | " + escape(by.format(DateUtil.DATE_INPUT_FORMAT));
+    }
+
+    /** {@inheritDoc} For a deadline, the due date must match too. */
+    @Override
+    public boolean hasSameDetails(Task other) {
+        return super.hasSameDetails(other) && other instanceof Deadline deadline && by.equals(deadline.by);
     }
 }

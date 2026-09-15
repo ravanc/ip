@@ -40,6 +40,20 @@ public class Ui {
         return scanner.nextLine();
     }
 
+    /**
+     * Returns whether there is another line to read, so that {@link #readCommand()} can be called
+     * safely.
+     * <p>
+     * It is {@code false} once the input has ended, which happens when the user presses Ctrl-D
+     * (Ctrl-Z then Enter on Windows) or when a file piped in as input runs out. Reading past that
+     * point would throw an exception and crash the chatbot.
+     *
+     * @return {@code true} if a line can still be read.
+     */
+    public boolean hasNextCommand() {
+        return scanner.hasNextLine();
+    }
+
     /** Prints the separator line to the terminal. */
     public void showLine() {
         System.out.println(HORIZONTAL_LINE);
@@ -209,6 +223,26 @@ public class Ui {
         return "I couldn't understand " + skippedCount
                 + pluralize(skippedCount, " line", " lines") + " in " + filePath
                 + ", so I've left " + pluralize(skippedCount, "it", "them") + " out.";
+    }
+
+    /**
+     * Returns how a save file that could not be fully loaded has been kept from being
+     * overwritten, or an empty string when the whole file was loaded and nothing needed keeping.
+     *
+     * @param filePath       the save file.
+     * @param backupFilePath where the file was copied, or an empty string if no copy was made.
+     * @param isSaveBlocked  whether saving has been switched off because the copy failed.
+     * @return the explanation, or an empty string.
+     */
+    public String getBackupMessage(String filePath, String backupFilePath, boolean isSaveBlocked) {
+        if (isSaveBlocked) {
+            return "I couldn't make a backup copy of " + filePath + " either, so I won't save any"
+                    + " changes over it. Please fix the file, then restart me to save again.";
+        }
+        if (backupFilePath.isEmpty()) {
+            return "";
+        }
+        return "Nothing is lost: I've kept a copy of the original file at " + backupFilePath + ".";
     }
 
     /**

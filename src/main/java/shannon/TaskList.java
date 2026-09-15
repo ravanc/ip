@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import shannon.exception.DuplicateTaskException;
 import shannon.exception.TaskNotFoundException;
 import shannon.task.Task;
 
@@ -46,12 +47,24 @@ public class TaskList {
     }
 
     /**
-     * Adds a task to the end of the list.
+     * Adds a task to the end of the list, unless the list already has one with the same details.
+     * <p>
+     * A repeat is almost always a mistake, such as a command sent twice, or a task added again
+     * after a save error made it look lost. Refusing it keeps the list from filling with copies
+     * the user then has to delete one by one. {@link Task#hasSameDetails(Task)} says what counts
+     * as the same.
      *
      * @param task the task to add
+     * @throws DuplicateTaskException if a task with the same details is already in the list
      */
-    public void add(Task task) {
+    public void add(Task task) throws DuplicateTaskException {
         assert task != null : "Cannot add a null task";
+        for (int i = 0; i < tasks.size(); i++) {
+            if (tasks.get(i).hasSameDetails(task)) {
+                // Named by its number, counting from 1, so the user can go straight to it.
+                throw new DuplicateTaskException(tasks.get(i).toString(), i + 1);
+            }
+        }
         tasks.add(task);
     }
 
