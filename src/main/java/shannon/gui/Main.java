@@ -5,7 +5,7 @@ import java.io.IOException;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import shannon.Shannon;
 
@@ -18,11 +18,15 @@ import shannon.Shannon;
  */
 public class Main extends Application {
 
-    /** The smallest height, in pixels, the window can be shrunk to. */
-    private static final double WINDOW_MIN_HEIGHT = 600.0;
+    /**
+     * The smallest height, in pixels, the window can be shrunk to.
+     * Small enough to tuck the window into a corner of the screen beside other work, but still
+     * tall enough to show a few exchanges above the input bar.
+     */
+    private static final double WINDOW_MIN_HEIGHT = 320.0;
 
-    /** The smallest width, in pixels, the window can be shrunk to. */
-    private static final double WINDOW_MIN_WIDTH = 400.0;
+    /** The smallest width, in pixels, the window can be shrunk to, before text wraps too often. */
+    private static final double WINDOW_MIN_WIDTH = 300.0;
 
     /** The chatbot the window talks to. The same class the terminal version uses. */
     private final Shannon shannon = new Shannon();
@@ -31,11 +35,13 @@ public class Main extends Application {
     public void start(Stage stage) {
         try {
             FXMLLoader fxmlLoader = new FXMLLoader(Main.class.getResource("/view/MainWindow.fxml"));
-            AnchorPane root = fxmlLoader.load();
+            VBox root = fxmlLoader.load();
             Scene scene = new Scene(root);
 
             stage.setScene(scene);
             stage.setTitle("Shannon");
+            // A minimum only, with no maximum: the window is freely resizable, and the layout
+            // in the FXML redistributes the space rather than leaving the extra room blank.
             stage.setMinHeight(WINDOW_MIN_HEIGHT);
             stage.setMinWidth(WINDOW_MIN_WIDTH);
 

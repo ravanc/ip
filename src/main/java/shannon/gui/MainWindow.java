@@ -7,9 +7,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import shannon.Response;
 import shannon.Shannon;
 
 /**
@@ -19,8 +19,12 @@ import shannon.Shannon;
  * it does. The two are joined by name: each {@code @FXML} field below matches an {@code fx:id}
  * in the file, and {@link #handleUserInput()} matches the {@code onAction="#handleUserInput"}
  * on the text field and the button.
+ * <p>
+ * It extends {@link VBox} because that is the type of the root element in the FXML: the
+ * controller of an FXML file is free to extend the root's type, and doing so lets JavaFX treat
+ * this object as the window's content directly.
  */
-public class MainWindow extends AnchorPane {
+public class MainWindow extends VBox {
 
     /** How long the window stays open after {@code bye}, so the goodbye can be read. */
     private static final double GOODBYE_DELAY_SECONDS = 1.5;
@@ -61,6 +65,10 @@ public class MainWindow extends AnchorPane {
     @FXML
     public void initialize() {
         scrollPane.vvalueProperty().bind(dialogContainer.heightProperty());
+        // The only thing the user can do in this window is type, so put the cursor there rather
+        // than making them click first. runLater, because focus can only be given to a control
+        // that is already part of a window, which it is not yet at this point.
+        Platform.runLater(userInput::requestFocus);
     }
 
     /**
@@ -93,16 +101,32 @@ public class MainWindow extends AnchorPane {
             return;
         }
 
-        String response = shannon.getResponse(input);
+        Response response = shannon.getResponse(input);
         dialogContainer.getChildren().addAll(
                 DialogBox.getUserDialog(input, userImage),
-                DialogBox.getShannonDialog(response, shannonImage)
+                createShannonDialog(response)
         );
         userInput.clear();
 
         if (shannon.isExitCommand(input)) {
             closeAfterGoodbye();
         }
+    }
+
+    /**
+     * Returns the dialog box for one of Shannon's replies, in the plain style for an ordinary
+     * answer or the red style for a problem.
+     * <p>
+     * The window asks the reply which it is instead of inspecting the words, so that rewording a
+     * message can never accidentally change how it is displayed.
+     *
+     * @param response the reply to show.
+     * @return the dialog box, ready to be added to the conversation.
+     */
+    private DialogBox createShannonDialog(Response response) {
+        return response.isError()
+                ? DialogBox.getErrorDialog(response.text(), shannonImage)
+                : DialogBox.getShannonDialog(response.text(), shannonImage);
     }
 
     /**

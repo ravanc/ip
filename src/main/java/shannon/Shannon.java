@@ -25,7 +25,8 @@ import shannon.task.Task;
  * <p>
  * There are two ways in, and they share all their logic. {@link #run()} is the terminal version:
  * read a line, print the reply, repeat. {@link #getResponse(String)} answers a single line and
- * hands the reply back as a string, which is what the JavaFX window in {@code shannon.gui} uses.
+ * hands the reply back as a {@link Response}, which is what the JavaFX window in
+ * {@code shannon.gui} uses.
  * Because {@code run()} is written in terms of {@code getResponse}, the two interfaces cannot
  * drift apart.
  */
@@ -83,14 +84,16 @@ public class Shannon {
         String input = ui.readCommand();
         while (!isExitCommand(input)) {
             ui.showLine();
-            ui.showMessage(getResponse(input));
+            // The terminal shows every reply the same way, so it wants only the words; the
+            // window also asks whether they are an error, and styles them accordingly.
+            ui.showMessage(getResponse(input).text());
             ui.showLine();
 
             input = ui.readCommand();
         }
 
         ui.showLine();
-        ui.showMessage(getResponse(input));
+        ui.showMessage(getResponse(input).text());
         ui.showLine();
     }
 
@@ -101,15 +104,19 @@ public class Shannon {
      * prints, so the caller is free to put the answer in a terminal, in a chat bubble, or in a
      * test assertion. Every handler reports problems by throwing a {@link ShannonException}, so
      * all failures are turned into a message in this one place instead of being scattered around.
+     * <p>
+     * Because that one place is here, this is also the only place that knows a reply is a
+     * complaint rather than a confirmation, which is why a {@link Response} is returned instead
+     * of a bare string: the caller should not have to read the words to find that out.
      *
      * @param input one line exactly as the user typed it.
-     * @return what the chatbot says in response, ready to be shown as-is.
+     * @return what the chatbot says in response, and whether it is an error.
      */
-    public String getResponse(String input) {
+    public Response getResponse(String input) {
         try {
-            return handleCommand(new Parser(input));
+            return Response.of(handleCommand(new Parser(input)));
         } catch (ShannonException e) {
-            return ui.getErrorMessage(e.getMessage());
+            return Response.ofError(ui.getErrorMessage(e.getMessage()));
         }
     }
 
