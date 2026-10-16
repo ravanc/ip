@@ -3,6 +3,7 @@ plugins {
     id 'application'
     id 'com.gradleup.shadow' version '9.5.1'
     id 'checkstyle'
+    id 'jacoco'
 }
 
 java {
@@ -66,6 +67,21 @@ test {
 application {
     // Launcher, not Main: see the class comment in Launcher.java.
     mainClass = 'shannon.gui.Launcher'
+}
+
+// Use the standard report task so both entry points produce the same report.
+jacocoTestReport {
+    dependsOn test
+    reports {
+        html.required = true
+        xml.required = true
+    }
+}
+
+tasks.register('coverage') {
+    group = 'verification'
+    description = 'Runs unit tests and generates the JaCoCo coverage report.'
+    dependsOn jacocoTestReport
 }
 
 jar {
